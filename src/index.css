@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap');
+@layer utilities {
+  .animate-slow-drift {
+    animation: drift 20s ease-in-out infinite alternate;
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    0% { transform: translateX(-50px) translateY(-30px); }
+    100% { transform: translateX(50px) translateY(30px); }
+  }
+  @keyframes float {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-30px); }
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+}
+
+html {
+    scroll-behavior: smooth;
+  }
+  

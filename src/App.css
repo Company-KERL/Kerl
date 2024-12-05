@@ -1,0 +1,144 @@
+@import url("https://fonts.googleapis.com/css2?family=Actor&display=swap");
+
+body {
+  font-family: "actor", sans-serif;
+}
+
+.product-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 50px;
+  background: linear-gradient(to bottom, #5a4e8f, #a29ac5);
+}
+
+.product-image-slider {
+  display: flex;
+  align-items: center;
+  margin-right: 50px;
+}
+
+.prev-button, .next-button {
+  background-color: transparent;
+  border: none;
+  color: rgb(40, 30, 30);
+  font-size: 2em;
+  cursor: pointer;
+}
+
+.image-container {
+  width: 300px;
+  height: 400px;
+  display: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.product-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  color: rgb(40, 30, 30);
+}
+
+.product-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.back-button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5em;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.product-name {
+  font-size: 2.5em;
+  font-family: 'actor', sans-serif;
+  font-weight: bold;
+  color: #F1F1D9;
+}
+
+.product-description {
+  background-color: rgba(60, 40, 50, 0.8);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  color: #F1F1D9;
+  width: 60%;
+  font-family: "Actor", sans-serif;
+  line-height: 1.6;
+}
+
+.product-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.quantity-selector {
+  display: inline-flex;
+  align-items: center;
+  background-color: #ddd;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.quantity-selector button {
+  background-color: transparent;
+  border: none;
+  font-size: 1.5em;
+  color: black;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+.quantity-selector span {
+  font-size: 1.5em;
+}
+
+select {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #333;
+  background-color: #f9f9f9;
+}
+
+.product-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.add-to-cart {
+  background-color: #5E822F;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.buy-now {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  cursor: pointer;
+  border-radius: 5px;
+}
