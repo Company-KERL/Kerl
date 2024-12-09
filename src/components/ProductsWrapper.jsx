@@ -10,7 +10,7 @@ const ProductPageWrapper = () => {
   const product = ProductData.find((p) => p.id === parseInt(productId, 10)); // Find product by ID
 
   const handleBackClick = () => {
-    navigate('/'); // Navigate back to products page
+    navigate('/explore'); // Navigate back to products page
   };
 
   if (!product) {

@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 
-const ProductPage = ({ product, onBackClick }) => {
+const ProductPage = ({ product, onBackClick, onAddToCart }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // State for image modal
 
-  // Set scroll position to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Update images based on selected size
   const currentImages = product.images[selectedSizeIndex];
 
   const handleQuantityChange = (amount) => {
@@ -45,6 +44,38 @@ const ProductPage = ({ product, onBackClick }) => {
     window.open(`https://wa.me/9567072475?text=${message}`, "_blank");
   };
 
+  const handleAddToCartClick = () => {
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      size: product.sizes[selectedSizeIndex],
+      quantity,
+      price: product.Offers[selectedSizeIndex] || product.Prices[selectedSizeIndex],
+    };
+    onAddToCart(cartItem);
+  };
+
+  // Calculate total price
+  const currentPrice = product.Offers[selectedSizeIndex] || product.Prices[selectedSizeIndex];
+  const totalPrice = currentPrice * quantity;
+
+  // Open and close image modal
+  const openImageModal = (index) => {
+    setCurrentImageIndex(index);
+    setIsImageModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setIsImageModalOpen(false);
+  };
+
+  const handleOutsideClick = (event) => {
+    // Close modal if the click happens outside of the modal content
+    if (event.target === event.currentTarget) {
+      closeImageModal();
+    }
+  };
+
   return (
     <div className="container mx-auto px-6 md:px-16 py-10 md:py-28 mt-16">
       <button
@@ -61,7 +92,8 @@ const ProductPage = ({ product, onBackClick }) => {
             <img
               src={currentImages[currentImageIndex]}
               alt={product.name}
-              className="w-full h-64 md:h-96 object-contain rounded-lg shadow-md"
+              className="w-full h-64 md:h-96 object-contain rounded-lg shadow-md cursor-pointer transition-transform duration-300 ease-in-out transform hover:scale-110"
+              onClick={() => openImageModal(currentImageIndex)} // Click to open image modal
             />
             <button
               className="absolute left-0 top-1/2 -translate-y-1/2 text-white bg-black bg-opacity-50 p-2 rounded-full"
@@ -97,8 +129,8 @@ const ProductPage = ({ product, onBackClick }) => {
                   } hover:bg-green-400 transition`}
                   onClick={() => {
                     setSelectedSizeIndex(index);
-                    setCurrentImageIndex(0); // Reset image index when size changes
-                    setQuantity(1); // Reset quantity when size changes
+                    setCurrentImageIndex(0); 
+                    setQuantity(1);
                   }}
                 >
                   {size}
@@ -123,6 +155,11 @@ const ProductPage = ({ product, onBackClick }) => {
             )}
           </div>
 
+          {/* Total Price */}
+          <div className="text-xl font-semibold text-gray-800">
+            Total: ₹ {totalPrice}
+          </div>
+
           {/* Quantity Selector */}
           <div className="flex items-center space-x-4">
             <label className="text-gray-700">Quantity:</label>
@@ -143,13 +180,19 @@ const ProductPage = ({ product, onBackClick }) => {
             </div>
           </div>
 
-          {/* Buy Now Button */}
+          {/* Buttons Section */}
           <div className="flex space-x-4">
             <button
               className="bg-green-500 text-white py-3 px-6 rounded-lg shadow-md hover:bg-green-600"
               onClick={handleBuyNowClick}
             >
               Buy Now
+            </button>
+            <button
+              className="bg-blue-500 text-white py-3 px-6 rounded-lg shadow-md hover:bg-blue-600"
+              onClick={handleAddToCartClick}
+            >
+              Add to Cart
             </button>
           </div>
         </div>
@@ -183,6 +226,40 @@ const ProductPage = ({ product, onBackClick }) => {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {isImageModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-10"
+          onClick={handleOutsideClick}
+        >
+          <div className="relative p-10">
+            <img
+              src={currentImages[currentImageIndex]}
+              alt={product.name}
+              className="w-full max-w-screen-sm h-fit object-fit rounded-lg shadow-lg"
+            />
+            <button
+              className="absolute top-10 right-0 p-4 text-white bg-black bg-opacity-50 rounded-xl"
+              onClick={closeImageModal}
+            >
+              X
+            </button>
+            <button
+              className="absolute left-0 top-1/2 -translate-y-1/2 p-4 text-white bg-black bg-opacity-50 rounded-xl"
+              onClick={handlePreviousImage}
+            >
+              ‹
+            </button>
+            <button
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-4 text-white bg-black bg-opacity-50 rounded-xl"
+              onClick={handleNextImage}
+            >
+              ›
+            </button>
           </div>
         </div>
       )}

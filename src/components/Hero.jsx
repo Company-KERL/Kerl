@@ -94,7 +94,7 @@ function Hero() {
         
         <div className="mt-8 flex justify-center items-center space-x-4">
           <a
-            href="#products"
+            href="/explore"
             className="inline-block px-10 py-4 bg-green-500 text-white font-semibold rounded-full 
             hover:bg-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 
             shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
