@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const SignupPage = () => {
   const [name, setName] = useState("");
@@ -8,6 +9,7 @@ const SignupPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const navigate = useNavigate();
 
   const handleSignup = (e) => {
     e.preventDefault();
@@ -32,7 +34,7 @@ const SignupPage = () => {
         console.error(err);
         alert("An error occurred. Please try again later.");
       });
-
+    navigate("/login");
     // console.log('Signing up with:', { name, email, password });
   };
 

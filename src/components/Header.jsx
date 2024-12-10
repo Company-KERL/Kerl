@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { UserContext } from "../context/UserContext";
 import { FaBars, FaTimes, FaShoppingCart } from "react-icons/fa";
 import "@fontsource/cormorant-garamond/700.css";
 
 const Header = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Mock authentication
-  const username = "John Doe"; // Mock username
+  const { isLoggedIn, logOut, user } = useContext(UserContext);
+
+  const username = user.username; // Mock username
   const [cartItemCount, setCartItemCount] = useState(3); // Mock cart state
 
   const [isOpen, setIsOpen] = useState(false); // Mobile menu toggle
@@ -20,7 +22,11 @@ const Header = () => {
       <div className="container mx-auto flex justify-between items-center py-4 px-4 md:px-16">
         {/* Logo */}
         <a className="flex items-center" href="/#ero">
-          <img src="Logo.png" alt="Kerl Logo" className="w-10 h-10 md:w-12 md:h-12" />
+          <img
+            src="Logo.png"
+            alt="Kerl Logo"
+            className="w-10 h-10 md:w-12 md:h-12"
+          />
           <h1
             className="ml-2 text-2xl md:text-3xl font-bold"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
@@ -44,13 +50,22 @@ const Header = () => {
         >
           {/* Navigation Links */}
           <nav className="flex flex-col md:flex-row md:space-x-6 text-gray-700 px-4 md:p-0 justify-center items-center">
-            <a href="/#about" className="block py-2 md:py-0 hover:text-gray-900">
+            <a
+              href="/#about"
+              className="block py-2 md:py-0 hover:text-gray-900"
+            >
               About Us
             </a>
-            <a href="#contact" className="block py-2 md:py-0 hover:text-gray-900">
+            <a
+              href="#contact"
+              className="block py-2 md:py-0 hover:text-gray-900"
+            >
               Contact
             </a>
-            <a href="/explore" className="block py-2 md:py-0 hover:text-gray-900">
+            <a
+              href="/explore"
+              className="block py-2 md:py-0 hover:text-gray-900"
+            >
               Products
             </a>
 
@@ -105,7 +120,7 @@ const Header = () => {
                     </li>
                     <li>
                       <button
-                        onClick={() => setIsLoggedIn(false)}
+                        onClick={logOut}
                         className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200"
                       >
                         Logout
@@ -180,7 +195,7 @@ const Header = () => {
                   </li>
                   <li>
                     <button
-                      onClick={() => setIsLoggedIn(false)}
+                      onClick={logOut}
                       className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200"
                     >
                       Logout

@@ -1,30 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  const { logIn } = useContext(UserContext);
+  const navigate = useNavigate();
   const handleLogin = (e) => {
     e.preventDefault();
-    // Add login logic here
+
     fetch(`${process.env.REACT_APP_BACKEND_URI}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
+      credentials: "include", // Include cookies in the request
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
-        console.log(data);
-        alert(data.message);
+        if (data.success) {
+          alert(data.message);
+          logIn(data.user);
+          navigate("/");
+        } else {
+          alert(data.message || "Login failed. Please try again.");
+        }
       })
       .catch((err) => {
         console.error(err);
         alert("An error occurred. Please try again later.");
       });
-    // console.log("Logging in with:", { email, password });
   };
 
   return (

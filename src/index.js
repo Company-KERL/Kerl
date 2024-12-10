@@ -1,11 +1,16 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import '../src/index.css'  // Tailwind styles imported here
-import App from './App';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import "../src/index.css";
+import App from "./App";
+import { UserContextProvider } from "./context/UserContext";
 
-ReactDOM.render(
+const container = document.getElementById("root");
+const root = createRoot(container);
+
+root.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+    <UserContextProvider>
+      <App />
+    </UserContextProvider>
+  </React.StrictMode>
 );
