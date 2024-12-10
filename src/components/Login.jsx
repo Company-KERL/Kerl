@@ -1,21 +1,39 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
     // Add login logic here
-    console.log('Logging in with:', { email, password });
+    fetch(`${process.env.REACT_APP_BACKEND_URI}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        alert(data.message);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("An error occurred. Please try again later.");
+      });
+    // console.log("Logging in with:", { email, password });
   };
 
   return (
     <section className="mt-16 min-h-[800px] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 sm:p-10">
         {/* Heading */}
-        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">Login</h2>
+        <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4">
+          Login
+        </h2>
         <p className="text-center text-gray-600 mb-6">
           Enter your credentials to access your account.
         </p>
