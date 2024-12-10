@@ -56,7 +56,7 @@ const CartPage = () => {
       <div className="flex justify-between items-center mb-8">
         {/* Back Button */}
         <a
-          href="/explore"
+          href="/"
           className="text-gray-600 hover:text-blue-800 font-semibold text-lg flex items-center space-x-2"
         >
           <svg
@@ -73,7 +73,7 @@ const CartPage = () => {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-          <span>Back to Explore</span>
+          <span>Back</span>
         </a>
         <h1 className="text-4xl font-semibold text-gray-900">Your Cart</h1>
       </div>

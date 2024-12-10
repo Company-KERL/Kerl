@@ -39,15 +39,22 @@ const Products = () => {
             ))}
 
             {/* Empty product "ghosts" with fade effect */}
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-lg p-6 relative overflow-hidden">
-                {/* Apply gradient fade effect */}
-                <div
-                  className="w-full h-36 bg-gradient-to-b from-gray-200 to-transparent rounded-lg"
-                  style={{ opacity: 1 - (index * 0.2) }} // Gradual fade for each ghost
-                />
-              </div>
-            ))}
+            {/* Empty product "ghosts" with fade effect */}
+{Array.from({ length: 3 }).map((_, index) => (
+  <div
+    key={index}
+    className={`bg-white rounded-lg shadow-lg p-6 relative overflow-hidden ${
+      index === 0 ? '' : 'hidden sm:block' // Show only the first ghost in phone view
+    }`}
+  >
+    {/* Apply gradient fade effect */}
+    <div
+      className="w-full h-36 bg-gradient-to-b from-gray-200 to-transparent rounded-lg"
+      style={{ opacity: 1 - index * 0.2 }} // Gradual fade for each ghost
+    />
+  </div>
+))}
+
           </div>
 
           {/* View More Button */}

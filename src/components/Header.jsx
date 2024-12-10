@@ -6,7 +6,7 @@ import "@fontsource/cormorant-garamond/700.css";
 const Header = () => {
   const { isLoggedIn, logOut, user } = useContext(UserContext);
 
-  const username = user.username; // Mock username
+  const username = isLoggedIn?user.username:''; // Mock username
   const [cartItemCount, setCartItemCount] = useState(3); // Mock cart state
 
   const [isOpen, setIsOpen] = useState(false); // Mobile menu toggle
