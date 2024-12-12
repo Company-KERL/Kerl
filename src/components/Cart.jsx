@@ -1,48 +1,116 @@
-import React, { useState, useEffect } from 'react';
-import cartData from './CartData'; // Import the dummy data
+import React, { useState, useEffect, useContext} from 'react';
+import { UserContext } from "../context/UserContext";
+import { useNavigate } from 'react-router-dom';
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const { user } = useContext(UserContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Set cart items to the imported dummy data
-    setCartItems(cartData);
+    const fetchCart = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch cart items');
+        }
 
-    // Calculate the total price
-    const total = cartData.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+        const data = await response.json();
+        setCartItems(data.cart.items); // Assuming 'cart.items' is an array of cart items
+        console.log(data.cart.items);
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+
+    if (user && user._id) {
+      fetchCart();
+    }
+  }, [user]);
+
+  // Calculate the total price whenever cartItems change
+  useEffect(() => {
+    const total = cartItems.reduce(
+      (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
       0
     );
     setTotalPrice(total);
-  }, []);
+  }, [cartItems]);
 
-  const handleQuantityChange = (index, newQuantity) => {
+  const handleQuantityChange = async (index, newQuantity) => {
     const updatedCartItems = [...cartItems];
     updatedCartItems[index].quantity = newQuantity;
     setCartItems(updatedCartItems);
-
+  
     // Recalculate total price
     const newTotalPrice = updatedCartItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+      (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
       0
     );
     setTotalPrice(newTotalPrice);
+  
+    // Update quantity in the backend
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user._id,
+          productId: updatedCartItems[index].productId._id,
+          quantity: newQuantity,
+          selectedSizeIndex: updatedCartItems[index].selectedSizeIndex,
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update quantity');
+      }
+  
+      // Optionally, you can handle response data if necessary
+    } catch (error) {
+      console.error(error.message);
+    }
   };
-
-  const handleDeleteItem = (index) => {
+  
+  const handleDeleteItem = async (index) => {
     // Ask for confirmation before removing an item
     const confirmed = window.confirm('Are you sure you want to remove this item from your cart?');
     if (confirmed) {
       const updatedCartItems = cartItems.filter((_, i) => i !== index);
       setCartItems(updatedCartItems);
-
+  
       // Recalculate total price after deletion
       const newTotalPrice = updatedCartItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+        (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
         0
       );
       setTotalPrice(newTotalPrice);
+  
+      // Delete item from backend
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user._id,
+            productId: cartItems[index].productId._id,
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to remove item');
+        }
+  
+        // Optionally, you can handle response data if necessary
+      } catch (error) {
+        console.error(error.message);
+      }
     }
   };
 
@@ -51,13 +119,24 @@ const CartPage = () => {
     alert('Proceeding to payment...');
   };
 
+  const handleBack = () => { 
+    if (window.history.length > 1) {
+      navigate(-1); // Navigate to the previous page
+    } else {
+      navigate('/explore'); // Fallback route if no history is available
+    }
+  };
+
+  const handleClick = (item)=> {
+    navigate(`/product/${item.productId._id}`);
+  };
+  
   return (
     <div className="container mx-auto px-8 md:px-16 py-32 ">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8" onClick={handleBack}>
         {/* Back Button */}
         <a
-          href="/"
-          className="text-gray-600 hover:text-blue-800 font-semibold text-lg flex items-center space-x-2"
+          className="text-gray-600 hover:text-blue-800 font-semibold text-lg flex items-center space-x-2 hover:cursor-pointer"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -99,15 +178,15 @@ const CartPage = () => {
             >
               <div className="flex flex-col md:flex-row items-center space-x-6 w-full">
                 <img
-                  src={item.image}
-                  alt={item.name}
+                  src={item.productId.images[item.selectedSizeIndex][0]} // Assuming you want the first image
+                  alt={item.productId.name}
                   className="w-32 h-42 object-fit rounded-lg shadow-md"
                 />
-                <div className="flex flex-col space-y-2 w-full md:w-2/3 mt-5 md:mt-0">
-                  <p className="text-xl font-semibold text-gray-800">{item.name}</p>
-                  <p className="text-sm text-gray-600">Size: {item.size}</p>
-                  <p className="text-sm text-gray-600">Price: ₹ {item.price}</p>
-                  <p className="text-sm text-gray-500">{item.description}</p>
+                <div className="flex flex-col space-y-2 w-full md:w-2/3 mt-5 md:mt-0 hover:cursor-pointer" onClick={() => handleClick(item)}>
+                  <p className="text-xl font-semibold text-gray-800">{item.productId.name}</p>
+                  <p className="text-sm text-gray-600">Size: {item.productId.sizes[item.selectedSizeIndex]}</p>
+                  <p className="text-sm text-gray-600">Price: ₹ {item.productId.prices[item.selectedSizeIndex]}</p>
+                  <p className="text-sm text-gray-500">{item.productId.description}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-10 mt-4 md:mt-0">
@@ -132,7 +211,7 @@ const CartPage = () => {
                 {/* Price with currency */}
                 <div className="flex flex-col justify-between">
                   <p className="text-xl font-semibold text-gray-800">
-                    ₹{item.price * item.quantity}
+                    ₹{item.productId.prices[item.selectedSizeIndex] * item.quantity}
                   </p>
                 </div>
 

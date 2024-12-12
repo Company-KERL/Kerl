@@ -1,9 +1,33 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import ProductData from './ProductData';
+import React,{useState,useEffect} from 'react';
+import { Link,useNavigate } from 'react-router-dom';
 
 const Products = () => {
   const visibleProductsCount = 3; // Show 3 products initially
+  const [ProductData, setProducts] = useState([]); // To store fetched products
+
+  const navigate = useNavigate();
+
+  const handleClick = (item)=> {
+    navigate(`/product/${item._id}`);
+  };
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/products`); // Replace with your API endpoint
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        const data = await response.json();
+        setProducts(data);
+        console.log(data);
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <section className="py-16 bg-gray-100" id="products">
@@ -14,7 +38,7 @@ const Products = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12">
             {/* Display the first 3 real products */}
             {ProductData.slice(0, visibleProductsCount).map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow-lg p-6">
+              <div key={product.id} className="bg-white rounded-lg shadow-lg p-6 hover:cursor-pointer" onClick={() => handleClick(product)}>
                 <img 
                   src={product.images[0][0]} 
                   alt={product.name} 
@@ -25,14 +49,14 @@ const Products = () => {
                 
                 {/* Pricing Section */}
                 <div className="mb-4 font-sans">
-                  {product.Offers && product.Offers.length > 0 && product.Prices.length > 0 ? (
+                  {product.Offers && product.Offers.length > 0 && product.prices.length > 0 ? (
                     <div className="flex items-center space-x-2 text-lg font-bold">
                       <span className="text-gray-800">Starting from: </span>
-                      <span className="line-through text-black">₹{product.Prices[0]}</span>
+                      <span className="line-through text-black">₹{product.prices[0]}</span>
                       <span className="text-green-600 font-semibold">Offer: ₹{product.Offers[0]}</span>
                     </div>
                   ) : (
-                    <span className="text-gray-700 font-semibold">Starting from: ₹{product.Prices[0]}</span>
+                    <span className="text-gray-700 font-semibold">Starting from: ₹{product.prices[0]}</span>
                   )}
                 </div>
               </div>
@@ -63,7 +87,7 @@ const Products = () => {
               <button className="px-10 py-3 bg-green-500 text-white font-semibold rounded-full 
             hover:bg-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 
             shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
-                View More
+                Explore More
               </button>
             </Link>
           </div>

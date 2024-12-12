@@ -11,6 +11,7 @@ import LoginPage from "./components/Login";
 import SignupPage from "./components/Signup";
 import { UserContext } from "./context/UserContext";
 import useCheckAuth from "./utils/useCheckAuth";
+import PageNotFound from "./components/PageNotFound";
 
 const App = () => {
   const { loading, isLoggedIn, user } = useContext(UserContext);
@@ -27,7 +28,7 @@ const App = () => {
   return (
     <Router>
       <Header />
-      <Routes>
+      <Routes>  
         <Route path="/" element={<Home />} />
         <Route
           path="/product/:productId"
@@ -38,6 +39,11 @@ const App = () => {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+
+        <Route 
+          path="*" 
+          element={<PageNotFound/>} 
+        />
       </Routes>
       <Footer />
     </Router>

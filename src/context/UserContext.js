@@ -33,6 +33,7 @@ export const UserContextProvider = ({ children }) => {
       // Clear the frontend state
       setIsLoggedIn(false);
       setUser(null);
+      navi
       localStorage.removeItem("isLoggedIn");
       localStorage.removeItem("user");
     } catch (error) {

@@ -1,20 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProductPage from './ProductPage';
-import ProductData from './ProductData'; // Assuming you store product info here
 
 const ProductPageWrapper = () => {
-  const { productId } = useParams();
+  const { productId } = useParams();  // Get productId from URL
   const navigate = useNavigate();
+  const [product, setProduct] = useState(null);  // State to store product data
+  const [loading, setLoading] = useState(true);  // State to handle loading
+  const [error, setError] = useState(null);  // State to handle errors
 
-  const product = ProductData.find((p) => p.id === parseInt(productId, 10)); // Find product by ID
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/products/${productId}`);
+        if (!response.ok) {
+          throw new Error('Product not found');
+        }
+        const data = await response.json();
+        setProduct(data);  // Set product data in state
+      } catch (error) {
+        setError(error.message);  // Set error message in state
+      } finally {
+        setLoading(false);  // Set loading to false when the fetch completes
+      }
+    };
+
+    fetchProductData();
+  }, [productId]);  // Re-fetch when productId changes
 
   const handleBackClick = () => {
-    navigate('/explore'); // Navigate back to products page
+    if (window.history.length > 1) {
+      navigate(-1); // Navigate to the previous page
+    } else {
+      navigate('/'); // Fallback route if no history is available
+    }
   };
 
+  if (loading) {
+    return <div>Loading...</div>;  // Show loading state
+  }
+
+  if (error) {
+    return <div>{error}</div>;  // Show error message if there's any
+  }
+
   if (!product) {
-    return <div>Product not found</div>;
+    return <div>Product not found</div>;  // Show message if product data is not found
   }
 
   return (

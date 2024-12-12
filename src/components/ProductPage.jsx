@@ -1,15 +1,44 @@
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect,useContext } from 'react';
+import { UserContext } from "../context/UserContext";
 const ProductPage = ({ product, onBackClick, onAddToCart }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const { isLoggedIn, logOut, user } = useContext(UserContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false); // State for image modal
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const userId = user._id
+  const addToCart = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          productId: product._id,
+          quantity,
+          selectedSizeIndex,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add item to cart');
+      }
+
+      const data = await response.json();
+      // Optionally, handle success (e.g., display success message, update cart state, etc.)
+      alert('Item added to cart:', data);
+    } catch (error) {
+      alert('Error adding item to cart:', error);
+    }
+  };
 
   const currentImages = product.images[selectedSizeIndex];
 
@@ -44,19 +73,9 @@ const ProductPage = ({ product, onBackClick, onAddToCart }) => {
     window.open(`https://wa.me/9567072475?text=${message}`, "_blank");
   };
 
-  const handleAddToCartClick = () => {
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      size: product.sizes[selectedSizeIndex],
-      quantity,
-      price: product.Offers[selectedSizeIndex] || product.Prices[selectedSizeIndex],
-    };
-    onAddToCart(cartItem);
-  };
 
   // Calculate total price
-  const currentPrice = product.Offers[selectedSizeIndex] || product.Prices[selectedSizeIndex];
+  const currentPrice = product.offers[selectedSizeIndex] || product.prices[selectedSizeIndex];
   const totalPrice = currentPrice * quantity;
 
   // Open and close image modal
@@ -141,17 +160,17 @@ const ProductPage = ({ product, onBackClick, onAddToCart }) => {
 
           {/* Pricing Section */}
           <div className="text-lg text-gray-700 font-sans">
-            {product.Offers[selectedSizeIndex] ? (
+            {product.offers[selectedSizeIndex] ? (
               <div className="flex items-center space-x-4">
                 <span className="line-through text-gray-900 text-xl font-bold">
-                  ₹ {product.Prices[selectedSizeIndex]}
+                  ₹ {product.prices[selectedSizeIndex]}
                 </span>
                 <span className="text-green-600 font-semibold">
-                  Offer: ₹ {product.Offers[selectedSizeIndex]}
+                  Offer: ₹ {product.offers[selectedSizeIndex]}
                 </span>
               </div>
             ) : (
-              <span>Price: ₹{product.Prices[selectedSizeIndex]}</span>
+              <span>Price: ₹{product.prices[selectedSizeIndex]}</span>
             )}
           </div>
 
@@ -190,7 +209,7 @@ const ProductPage = ({ product, onBackClick, onAddToCart }) => {
             </button>
             <button
               className="bg-blue-500 text-white py-3 px-6 rounded-lg shadow-md hover:bg-blue-600"
-              onClick={handleAddToCartClick}
+              onClick={addToCart}
             >
               Add to Cart
             </button>

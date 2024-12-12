@@ -1,17 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import ProductData from './ProductData';
+import { Link,useNavigate } from 'react-router-dom';
 import Filter from './Filter';
 
 const ExplorePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [ProductData, setProducts] = useState([]); // To store fetched products
   const [priceRange, setPriceRange] = useState([0, 10000]);
+  const navigate = useNavigate();
 
   // Reset scroll to top when the component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/products`); // Replace with your API endpoint
+        if (!response.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        const data = await response.json();
+        setProducts(data);
+        console.log(data);
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
+
+    fetchProducts();
   }, []);
+
+  const handleBack = () => { 
+    if (window.history.length > 1) {
+      navigate(-1); // Navigate to the previous page
+    } else {
+      navigate('/'); // Fallback route if no history is available
+    }
+  };
 
   // Filter products based on search term and selected filters
   const filteredProducts = ProductData.filter((product) => {
@@ -24,21 +48,23 @@ const ExplorePage = () => {
 
     // Filter based on the minimum price of the product
     const matchesPrice =
-      parseInt(product.Prices[0]) >= priceRange[0] &&
-      parseInt(product.Prices[0]) <= priceRange[1];
+      parseInt(product.prices[0]) >= priceRange[0] &&
+      parseInt(product.prices[0]) <= priceRange[1];
 
     return matchesSearch && matchesCategory && matchesPrice;
   });
+
+
 
   return (
     <section className="mt-16 py-16 bg-gray-50" id="explore">
       <div className="container mx-auto px-4 md:px-16">
         {/* Back Button */}
         <Link
-          to="/"
+          onClick={handleBack}
           className="text-gray-600 hover:text-gray-800 text-lg md:text-lg font-semibold mb-8 block"
         >
-          ‹ Back to Home
+          ‹ Back
         </Link>
 
         <div className="flex flex-col md:flex-row justify-between items-center mb-12">
@@ -82,7 +108,7 @@ const ExplorePage = () => {
             {filteredProducts.length > 0 ? (
               filteredProducts.map((product) => (
                 <div
-                  key={product.id}
+                  key={product._id}
                   className="bg-white rounded-xl shadow-lg p-6 transition-transform transform hover:scale-105 hover:shadow-2xl"
                 >
                   <img
@@ -97,20 +123,20 @@ const ExplorePage = () => {
 
                   {/* Pricing Section */}
                   <div className="mb-4 font-sans">
-                    {product.Offers && product.Offers.length > 0 && product.Prices.length > 0 ? (
+                    {product.Offers && product.Offers.length > 0 && product.prices.length > 0 ? (
                       <div className="flex items-center space-x-2 text-lg font-bold">
                         <span className="text-gray-800">Starting from: </span>
-                        <span className="line-through text-black">₹{product.Prices[0]}</span>
+                        <span className="line-through text-black">₹{product.prices[0]}</span>
                         <span className="text-green-600 font-semibold">Offer: ₹{product.Offers[0]}</span>
                       </div>
                     ) : (
-                      <span className="text-gray-700 font-semibold">Starting from: ₹{product.Prices[0]}</span>
+                      <span className="text-gray-700 font-semibold">Starting from: ₹{product.prices[0]}</span>
                     )}
                   </div>
 
                   {/* View More Button */}
                   <Link
-                    to={`/product/${product.id}`}
+                    to={`/product/${product._id}`}
                     className="px-2 py-3 bg-green-500 text-white font-semibold rounded-full 
                     hover:bg-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 
                     shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 block text-center"
