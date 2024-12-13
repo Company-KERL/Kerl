@@ -1,12 +1,14 @@
-import React, { useState, useContext,useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { UserContext } from "../context/UserContext";
 import { FaBars, FaTimes, FaShoppingCart } from "react-icons/fa";
 import "@fontsource/cormorant-garamond/700.css";
+import { useNavigate } from "react-router-dom";
 
-const Header = (navigate) => {
+const Header = () => {
+  const navigate = useNavigate();
   const { isLoggedIn, logOut, user } = useContext(UserContext);
 
-  const username = isLoggedIn?user.username:''; // Mock username
+  const username = isLoggedIn ? user.username : ""; // Mock username
   const [cartItemCount, setCartItemCount] = useState(); // Mock cart state
 
   const [isOpen, setIsOpen] = useState(false); // Mobile menu toggle
@@ -16,18 +18,16 @@ const Header = (navigate) => {
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleDropdown = () => setShowDropdown(!showDropdown);
   const toggleMobileDropdown = () => setShowMobileDropdown(!showMobileDropdown);
-  
-  const clickLogout = ()=>{
-    navigate('/');
-  };
 
   useEffect(() => {
     const fetchCartLength = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}/length`);
-        
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}/length`
+        );
+
         if (!response.ok) {
-          throw new Error('Failed to fetch cart length');
+          throw new Error("Failed to fetch cart length");
         }
 
         const data = await response.json();
@@ -146,7 +146,10 @@ const Header = (navigate) => {
                     </li>
                     <li>
                       <button
-                        onClick={logOut}
+                        onClick={() => {
+                          logOut();
+                          navigate("/");
+                        }}
                         className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200"
                       >
                         Logout
@@ -221,7 +224,10 @@ const Header = (navigate) => {
                   </li>
                   <li>
                     <button
-                      onClick={logOut}
+                      onClick={() => {
+                        logOut();
+                        navigate("/");
+                      }}
                       className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-200"
                     >
                       Logout
