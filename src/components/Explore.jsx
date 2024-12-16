@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Filter from './Filter';
 
 const ExplorePage = () => {
@@ -29,7 +29,7 @@ const ExplorePage = () => {
     fetchProducts();
   }, []);
 
-  const handleBack = () => { 
+  const handleBack = () => {
     if (window.history.length > 1) {
       navigate(-1); // Navigate to the previous page
     } else {
@@ -37,24 +37,36 @@ const ExplorePage = () => {
     }
   };
 
-  // Filter products based on search term and selected filters
-  const filteredProducts = ProductData.filter((product) => {
+  // Transform the products to list each size as a separate product
+  const transformedProducts = ProductData.flatMap((product) =>
+    product.sizes.map((size, index) => ({
+      _id: `${product._id}/${index}`, // Unique ID for each size
+      name: `${product.name} (${size})`, // Include size in the product name
+      description: product.description,
+      category: product.category,
+      price: product.prices[index], // Use the corresponding price
+      offer: product.offers?.[index] || null, // Use the corresponding offer, if any
+      image: product.images?.[index]?.[0] || null, // Use the corresponding image
+    }))
+  );
+
+  // Filter the transformed products based on user input
+  const filteredProducts = transformedProducts.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesCategory =
-      selectedCategory ? product.category === selectedCategory : true;
+      selectedCategory
+        ? product.name.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+          product.description.toLowerCase().includes(selectedCategory.toLowerCase())
+        : true;
 
-    // Filter based on the minimum price of the product
     const matchesPrice =
-      parseInt(product.prices[0]) >= priceRange[0] &&
-      parseInt(product.prices[0]) <= priceRange[1];
+      product.price >= priceRange[0] && product.price <= priceRange[1];
 
     return matchesSearch && matchesCategory && matchesPrice;
   });
-
-
 
   return (
     <section className="mt-16 py-16 bg-gray-50" id="explore">
@@ -112,7 +124,7 @@ const ExplorePage = () => {
                   className="bg-white rounded-xl shadow-lg p-6 transition-transform transform hover:scale-105 hover:shadow-2xl"
                 >
                   <img
-                    src={product.images[0][0]}
+                    src={product.image}
                     alt={product.name}
                     className="w-full h-48 md:h-64 object-contain rounded-lg mb-4"
                   />
@@ -123,14 +135,14 @@ const ExplorePage = () => {
 
                   {/* Pricing Section */}
                   <div className="mb-4 font-sans">
-                    {product.Offers && product.Offers.length > 0 && product.prices.length > 0 ? (
+                    {product.offer ? (
                       <div className="flex items-center space-x-2 text-lg font-bold">
                         <span className="text-gray-800">Starting from: </span>
-                        <span className="line-through text-black">₹{product.prices[0]}</span>
-                        <span className="text-green-600 font-semibold">Offer: ₹{product.Offers[0]}</span>
+                        <span className="line-through text-black">₹{product.price}</span>
+                        <span className="text-green-600 font-semibold">Offer: ₹{product.offer}</span>
                       </div>
                     ) : (
-                      <span className="text-gray-700 font-semibold">Starting from: ₹{product.prices[0]}</span>
+                      <span className="text-gray-700 font-semibold">Starting from: ₹{product.price}</span>
                     )}
                   </div>
 

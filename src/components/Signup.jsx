@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import InformationalModal from "./InfoModal";
 
 const SignupPage = () => {
   const [name, setName] = useState("");
@@ -10,6 +11,10 @@ const SignupPage = () => {
   const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const navigate = useNavigate();
+  const [isInfoModalOpen, setInfoModalOpen] = useState(false);
+  const openInfoModal = () => setInfoModalOpen(true);
+  const closeInfoModal = () => {setInfoModalOpen(false);navigate("/login");};
+  const [message1, setMessage] = useState(''); // Corrected state initialization
 
   const handleSignup = (e) => {
     e.preventDefault();
@@ -28,14 +33,14 @@ const SignupPage = () => {
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
-        alert(data.message);
+        setMessage(data.message);
+        openInfoModal();
       })
       .catch((err) => {
         console.error(err);
         alert("An error occurred. Please try again later.");
       });
-    navigate("/login");
-    // console.log('Signing up with:', { name, email, password });
+    
   };
 
   return (
@@ -143,7 +148,7 @@ const SignupPage = () => {
 
           <div>
             <label
-              htmlFor="confirm-password"
+              htmlFor="phone"
               className="block text-gray-700 font-medium mb-2"
             >
               Phone Number
@@ -176,6 +181,14 @@ const SignupPage = () => {
             Sign Up
           </button>
         </form>
+
+        {/* Modal */}
+        {isInfoModalOpen && (
+          <InformationalModal
+            message={message1}
+            onClose={closeInfoModal}
+          />
+        )}
 
         {/* Divider */}
         <div className="mt-6 text-center text-gray-600">

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ProductPage from './ProductPage';
 
 const ProductPageWrapper = () => {
-  const { productId } = useParams();  // Get productId from URL
+  const { productId,index } = useParams();  // Get productId from URL
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);  // State to store product data
   const [loading, setLoading] = useState(true);  // State to handle loading
@@ -49,7 +49,7 @@ const ProductPageWrapper = () => {
   }
 
   return (
-    <ProductPage product={product} onBackClick={handleBackClick} />
+    <ProductPage product={product} onBackClick={handleBackClick} index={index}/>
   );
 };
 

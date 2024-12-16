@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; // Product listing page
 import ProductPageWrapper from "./components/ProductsWrapper"; // Wrapper for individual product page
 import Home from "./components/Home";
@@ -13,9 +13,12 @@ import { UserContext } from "./context/UserContext";
 import useCheckAuth from "./utils/useCheckAuth";
 import PageNotFound from "./components/PageNotFound";
 import Order from "./components/Order";
+import ProfilePage from "./components/Profile";
+import OrdersPage from "./components/Orders";
 
 const App = () => {
   const { loading, isLoggedIn, user } = useContext(UserContext);
+  const [count, setCount] = useState();
   useCheckAuth();
   // useEffect(() => {
   //   console.log(isLoggedIn);
@@ -28,11 +31,11 @@ const App = () => {
 
   return (
     <Router>
-      <Header />
+      <Header/>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route
-          path="/product/:productId"
+          path="/product/:productId/:index"
           element={<ProductPageWrapper />}
         />{" "}
         {/* Dynamic ProductPage route */}
@@ -41,7 +44,12 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/profile" element={<ProfilePage/>}/>
+        <Route path="/orders" element={<OrdersPage/>}/>
+
+
         <Route path="*" element={<PageNotFound />} />
+        
       </Routes>
       <Footer />
     </Router>

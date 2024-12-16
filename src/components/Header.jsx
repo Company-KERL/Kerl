@@ -130,14 +130,6 @@ const Header = () => {
                     </li>
                     <li>
                       <a
-                        href="/settings"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-200"
-                      >
-                        Settings
-                      </a>
-                    </li>
-                    <li>
-                      <a
                         href="/cart"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-200"
                       >
@@ -204,14 +196,6 @@ const Header = () => {
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-200"
                     >
                       Orders
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="/settings"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-200"
-                    >
-                      Settings
                     </a>
                   </li>
                   <li>

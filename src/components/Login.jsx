@@ -2,12 +2,18 @@ import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
+import InformationalModal from "./InfoModal";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { logIn } = useContext(UserContext);
   const navigate = useNavigate();
+  const [isModalOpen, setModalOpen] = useState(false); // Modal state
+  const [message, setMessage] = useState(""); // Modal message
+
+  const closeModal = () => {setModalOpen(false);navigate("/");} // Close modal
+
   const handleLogin = (e) => {
     e.preventDefault();
 
@@ -27,16 +33,19 @@ const LoginPage = () => {
       })
       .then((data) => {
         if (data.success) {
-          alert(data.message);
+          setMessage(data.message);
           logIn(data.user);
-          navigate("/");
+          setModalOpen(true); // Open the modal on success
+          
         } else {
-          alert(data.message || "Login failed. Please try again.");
+          setMessage(data.message || "Login failed. Please try again.");
+          setModalOpen(true); // Open the modal on failure
         }
       })
       .catch((err) => {
         console.error(err);
-        alert("An error occurred. Please try again later.");
+        setMessage("An error occurred. Please try again later.");
+        setModalOpen(true); // Open the modal on error
       });
   };
 
@@ -111,6 +120,14 @@ const LoginPage = () => {
           </Link>
         </div>
       </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <InformationalModal
+          message={message}
+          onClose={closeModal}
+        />
+      )}
     </section>
   );
 };

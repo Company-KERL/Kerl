@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
+import Modal from "./ConfirmModal";
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null); // Track the item to delete
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -21,7 +24,6 @@ const CartPage = () => {
 
         const data = await response.json();
         setCartItems(data.cart.items); // Assuming 'cart.items' is an array of cart items
-        console.log(data.cart.items);
       } catch (error) {
         console.log(error.message);
       }
@@ -76,55 +78,56 @@ const CartPage = () => {
       if (!response.ok) {
         throw new Error("Failed to update quantity");
       }
-
-      // Optionally, you can handle response data if necessary
     } catch (error) {
       console.error(error.message);
     }
   };
 
-  const handleDeleteItem = async (index) => {
-    // Ask for confirmation before removing an item
-    const confirmed = window.confirm(
-      "Are you sure you want to remove this item from your cart?"
+  const handleDeleteItem = (index) => {
+    setItemToDelete(index); // Set the item to delete
+    setShowModal(true); // Open the modal
+  };
+
+  const confirmDelete = async () => {
+    const updatedCartItems = cartItems.filter((_, i) => i !== itemToDelete);
+    setCartItems(updatedCartItems);
+
+    // Recalculate total price after deletion
+    const newTotalPrice = updatedCartItems.reduce(
+      (sum, item) =>
+        sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
+      0
     );
-    if (confirmed) {
-      const updatedCartItems = cartItems.filter((_, i) => i !== index);
-      setCartItems(updatedCartItems);
+    setTotalPrice(newTotalPrice);
 
-      // Recalculate total price after deletion
-      const newTotalPrice = updatedCartItems.reduce(
-        (sum, item) =>
-          sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
-        0
-      );
-      setTotalPrice(newTotalPrice);
-
-      // Delete item from backend
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URI}/cart`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              userId: user._id,
-              productId: cartItems[index].productId._id,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to remove item");
+    // Delete item from backend
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URI}/cart`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user._id,
+            productId: cartItems[itemToDelete].productId._id,
+          }),
         }
+      );
 
-        // Optionally, you can handle response data if necessary
-      } catch (error) {
-        console.error(error.message);
+      if (!response.ok) {
+        throw new Error("Failed to remove item");
       }
+    } catch (error) {
+      console.error(error.message);
     }
+
+    setShowModal(false); // Close the modal after confirming
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false); // Close the modal without confirming
   };
 
   const handleProceedToPayment = () => {
@@ -146,7 +149,7 @@ const CartPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-8 md:px-16 py-32 ">
+    <div className="container mx-auto px-8 md:px-16 py-32">
       <div
         className="flex justify-between items-center mb-8"
         onClick={handleBack}
@@ -298,6 +301,14 @@ const CartPage = () => {
           </button>
         </div>
       )}
+
+      {/* Modal for deletion confirmation */}
+      <Modal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        onConfirm={confirmDelete}
+        message="Are you sure you want to remove this item from your cart?"
+      />
     </div>
   );
 };

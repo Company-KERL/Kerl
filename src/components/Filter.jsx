@@ -25,7 +25,7 @@ const Filter = ({ selectedCategory, setSelectedCategory, priceRange, setPriceRan
   };
 
   // Categories based on ProductData
-  const categories = ['Cleaning', 'Household', 'Multi Cleaner', 'Toilet Cleaner', 'Floor Cleaner', 'Liquid Detergent'];
+  const categories = ['Multi Cleaner', 'Toilet Cleaner', 'Floor Cleaner', 'Liquid Detergent'];
 
   const handleResetFilters = () => {
     setSelectedCategory('');

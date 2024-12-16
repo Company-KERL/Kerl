@@ -1,18 +1,21 @@
-import React, { useState, useEffect,useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { UserContext } from "../context/UserContext";
-const ProductPage = ({ product, onBackClick, onAddToCart }) => {
+const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(index);
   const [quantity, setQuantity] = useState(1);
   const { isLoggedIn, logOut, user } = useContext(UserContext);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // State for image modal
+  const [isModalOpen, setIsModalOpen] = useState(false); // WhatsApp modal
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // Image modal
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false); // Informational modal for cart addition
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const userId = user._id
+  const userId = user._id;
+
   const addToCart = async () => {
     try {
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart`, {
@@ -33,8 +36,8 @@ const ProductPage = ({ product, onBackClick, onAddToCart }) => {
       }
 
       const data = await response.json();
-      // Optionally, handle success (e.g., display success message, update cart state, etc.)
-      alert('Item added to cart:', data);
+      setMessage('Item added to cart!');
+      setIsInfoModalOpen(true);  // Correctly open the info modal
     } catch (error) {
       alert('Error adding item to cart:', error);
     }
@@ -73,7 +76,6 @@ const ProductPage = ({ product, onBackClick, onAddToCart }) => {
     window.open(`https://wa.me/9567072475?text=${message}`, "_blank");
   };
 
-
   // Calculate total price
   const currentPrice = product.offers[selectedSizeIndex] || product.prices[selectedSizeIndex];
   const totalPrice = currentPrice * quantity;
@@ -89,7 +91,6 @@ const ProductPage = ({ product, onBackClick, onAddToCart }) => {
   };
 
   const handleOutsideClick = (event) => {
-    // Close modal if the click happens outside of the modal content
     if (event.target === event.currentTarget) {
       closeImageModal();
     }
@@ -148,7 +149,7 @@ const ProductPage = ({ product, onBackClick, onAddToCart }) => {
                   } hover:bg-green-400 transition`}
                   onClick={() => {
                     setSelectedSizeIndex(index);
-                    setCurrentImageIndex(0); 
+                    setCurrentImageIndex(0);
                     setQuantity(1);
                   }}
                 >
@@ -249,35 +250,40 @@ const ProductPage = ({ product, onBackClick, onAddToCart }) => {
         </div>
       )}
 
+      {/* Informational Modal */}
+      {isInfoModalOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-10"
+        >
+          <div className="bg-white p-6 rounded-lg w-80 text-center">
+            <p>{message}</p>
+            <button
+              className="mt-4 bg-green-500 text-white py-2 px-4 rounded-lg"
+              onClick={() => setIsInfoModalOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Image Modal */}
       {isImageModalOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-10"
           onClick={handleOutsideClick}
         >
-          <div className="relative p-10">
+          <div className="bg-white p-6 rounded-lg w-96 text-center">
             <img
               src={currentImages[currentImageIndex]}
               alt={product.name}
-              className="w-full max-w-screen-sm h-fit object-fit rounded-lg shadow-lg"
+              className="w-full h-full object-contain"
             />
             <button
-              className="absolute top-10 right-0 p-4 text-white bg-black bg-opacity-50 rounded-xl"
+              className="mt-4 bg-red-500 text-white py-2 px-4 rounded-lg"
               onClick={closeImageModal}
             >
-              X
-            </button>
-            <button
-              className="absolute left-0 top-1/2 -translate-y-1/2 p-4 text-white bg-black bg-opacity-50 rounded-xl"
-              onClick={handlePreviousImage}
-            >
-              ‹
-            </button>
-            <button
-              className="absolute right-0 top-1/2 -translate-y-1/2 p-4 text-white bg-black bg-opacity-50 rounded-xl"
-              onClick={handleNextImage}
-            >
-              ›
+              Close
             </button>
           </div>
         </div>
