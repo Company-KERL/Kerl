@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 const Order = () => {
   const { user } = useContext(UserContext);
   const [selectedAddress, setSelectedAddress] = useState("");
   const [addresses, setAddresses] = useState([]);
   const [items, setItems] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -45,12 +47,86 @@ const Order = () => {
     fetchAddresses();
   }, [user]);
 
-  const handleAddressChange = (event) => {
-    setSelectedAddress(event.target.value);
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => {
+      console.log("Razorpay SDK loaded successfully.");
+    };
+    script.onerror = () => {
+      console.error("Failed to load Razorpay SDK.");
+    };
+    document.body.appendChild(script);
+  }, []);
+
+  const handlePayment = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URI}/orders`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user._id,
+            items,
+            address: selectedAddress,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      const { order, razorpayOrderId } = await response.json();
+
+      const options = {
+        key: process.env.REACT_APP_RAZORPAY_KEY,
+        amount: order.totalPrice * 100, // Amount in paise
+        currency: "INR",
+        name: "Kerl",
+        description: "Order Payment",
+        image: "/Logo.png",
+        order_id: razorpayOrderId,
+        handler: function (response) {
+          alert(
+            `Payment successful! Payment ID: ${response.razorpay_payment_id}`
+          );
+          try {
+            const response = fetch(
+              `${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}`,
+              {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to clear cart");
+            }
+          } catch (error) {
+            console.error(error.message);
+          }
+
+          navigate("/explore");
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.contact || "",
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error(error.message);
+    }
   };
 
-  const handleProceedToPayment = () => {
-    alert(`Proceeding to payment with address: ${selectedAddress}`);
+  const handleAddressChange = (event) => {
+    setSelectedAddress(event.target.value);
   };
 
   return (
@@ -99,9 +175,26 @@ const Order = () => {
             </option>
           )}
         </select>
+        <div>
+          <label
+            htmlFor="address"
+            className="block text-gray-700 font-medium mb-2"
+          >
+            Add a new address
+          </label>
+          <input
+            id="address"
+            type="text"
+            placeholder="Enter your Address"
+            className="w-full px-4 py-2 mb-4 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
+            value={selectedAddress}
+            onChange={(e) => setSelectedAddress(e.target.value)}
+            required
+          />
+        </div>
 
         <button
-          onClick={handleProceedToPayment}
+          onClick={handlePayment}
           disabled={!selectedAddress}
           className={`w-full py-2 px-4 text-white font-semibold rounded-lg shadow-md transition-colors 
             ${
