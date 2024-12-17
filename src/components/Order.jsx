@@ -1,12 +1,30 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context/UserContext";
+import { CartContext } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
+import { formatAddress } from "../utils/formatAddress";
+
+// Example usage
+const address = {
+  street: "123 Main St",
+  city: "New York",
+  state: "NY",
+  zip: "10001",
+};
+
+const formattedAddress = formatAddress(address);
+console.log(formattedAddress); // Output: "123 Main St, New York, NY, 10001"
 
 const Order = () => {
   const { user } = useContext(UserContext);
-  const [selectedAddress, setSelectedAddress] = useState("");
+  const { setCartItemCount } = useContext(CartContext);
+  const [selectedAddress, setSelectedAddress] = useState({});
   const [addresses, setAddresses] = useState([]);
   const [items, setItems] = useState([]);
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,7 +56,7 @@ const Order = () => {
           throw new Error("Failed to fetch addresses");
         }
         const data = await response.json();
-        setAddresses(data);
+        setAddresses(data.addresses);
       } catch (error) {
         console.error(error.message);
       }
@@ -62,6 +80,7 @@ const Order = () => {
 
   const handlePayment = async () => {
     try {
+      setSelectedAddress({ street, city, state, zip });
       // Step 1: Create Order in Backend
       const orderResponse = await fetch(
         `${process.env.REACT_APP_BACKEND_URI}/orders`,
@@ -131,7 +150,7 @@ const Order = () => {
             if (!paymentUpdateResponse.ok) {
               throw new Error("Failed to update payment status on the backend");
             }
-
+            setCartItemCount(0);
             alert("Payment successful!");
             navigate("/explore");
           } catch (error) {
@@ -226,29 +245,77 @@ const Order = () => {
           {addresses.length > 0 ? (
             addresses.map((address, idx) => (
               <option key={idx} value={address}>
-                {address.address}
+                {formatAddress(address)}
               </option>
             ))
           ) : (
             <option value={user.address}>
-              {user.address || "No addresses found"}
+              {formatAddress(user.address) || "No addresses found"}
             </option>
           )}
         </select>
         <div>
           <label
-            htmlFor="address"
+            htmlFor="streetAddress"
             className="block text-gray-700 font-medium mb-2"
           >
-            Add a new address
+            Street Address
           </label>
           <input
-            id="address"
+            id="streetAddress"
             type="text"
-            placeholder="Enter your Address"
-            className="w-full px-4 py-2 mb-4 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
-            value={selectedAddress}
-            onChange={(e) => setSelectedAddress(e.target.value)}
+            placeholder="Enter your Street Address"
+            className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
+            value={street}
+            onChange={(e) => setStreet(e.target.value)}
+            required
+          />
+
+          <label
+            htmlFor="city"
+            className="block text-gray-700 font-medium mt-4 mb-2"
+          >
+            City
+          </label>
+          <input
+            id="city"
+            type="text"
+            placeholder="Enter your City"
+            className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            required
+          />
+
+          <label
+            htmlFor="state"
+            className="block text-gray-700 font-medium mt-4 mb-2"
+          >
+            State
+          </label>
+          <input
+            id="state"
+            type="text"
+            placeholder="Enter your State"
+            className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            required
+          />
+
+          <label
+            htmlFor="pincode"
+            className="block text-gray-700 font-medium mt-4 mb-2"
+          >
+            Pincode
+          </label>
+          <input
+            id="pincode"
+            type="text"
+            placeholder="Enter your Pincode"
+            className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
+            value={zip}
+            onChange={(e) => setZip(e.target.value)}
             required
           />
         </div>

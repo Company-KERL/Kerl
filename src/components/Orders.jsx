@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
+import { formatAddress } from "../utils/formatAddress";
 
 const OrderStatusProgress = ({ status }) => {
   const stages = ["Order Received", "Processing", "Shipped", "Delivered"];
@@ -93,25 +94,31 @@ const OrderPage = () => {
       </div>
 
       {/* Order List */}
-      <ul>
-        {orders.map((order) => (
-          <li
-            key={order._id}
-            className="border p-4 mb-4 rounded-md shadow cursor-pointer"
-            onClick={() => handleOrderClick(order)}
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-semibold">Order ID: {order._id}</h3>
-                <p>Status: {order.status}</p>
-                <p>Total Price: ${order.totalPrice}</p>
-                <p>Address: {order.address}</p>
+      {orders.length > 0 ? (
+        <ul>
+          {orders.map((order) => (
+            <li
+              key={order._id}
+              className="border p-4 mb-4 rounded-md shadow cursor-pointer"
+              onClick={() => handleOrderClick(order)}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-semibold">
+                    Order ID: {order._id}
+                  </h3>
+                  <p>Status: {order.status}</p>
+                  <p>Total Price: ${order.totalPrice}</p>
+                  <p>Address: {formatAddress(order.address)}</p>
+                </div>
+                <div className="text-blue-500">View Details</div>
               </div>
-              <div className="text-blue-500">View Details</div>
-            </div>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No orders found.</p>
+      )}
 
       {/* Order Summary Modal */}
       {selectedOrder && (
@@ -128,7 +135,9 @@ const OrderPage = () => {
                 X
               </button>
             </div>
-            <p className="mt-4">Address: {selectedOrder.address}</p>
+            <p className="mt-4">
+              Address: {formatAddress(selectedOrder.address)}
+            </p>
             <h3 className="font-semibold mt-4">Items:</h3>
             <ul>
               {selectedOrder.items.map((item, index) => (
