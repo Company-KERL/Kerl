@@ -62,7 +62,8 @@ const Order = () => {
 
   const handlePayment = async () => {
     try {
-      const response = await fetch(
+      // Step 1: Create Order in Backend
+      const orderResponse = await fetch(
         `${process.env.REACT_APP_BACKEND_URI}/orders`,
         {
           method: "POST",
@@ -75,12 +76,32 @@ const Order = () => {
         }
       );
 
-      if (!response.ok) {
-        throw new Error("Failed to create order");
+      if (!orderResponse.ok) {
+        throw new Error("Failed to create order on the backend");
       }
 
-      const { order, razorpayOrderId } = await response.json();
+      const { order } = await orderResponse.json();
 
+      // Step 2: Create Razorpay Order
+      const razorpayOrderResponse = await fetch(
+        `${process.env.REACT_APP_BACKEND_URI}/payment/order`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: order._id,
+            totalPrice: order.totalPrice,
+          }),
+        }
+      );
+
+      if (!razorpayOrderResponse.ok) {
+        throw new Error("Failed to create Razorpay order");
+      }
+
+      const { razorpayOrderId } = await razorpayOrderResponse.json();
+
+      // Step 3: Configure Razorpay Options
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY,
         amount: order.totalPrice * 100, // Amount in paise
@@ -88,40 +109,56 @@ const Order = () => {
         name: "Kerl",
         description: "Order Payment",
         image: "/Logo.png",
-        order_id: razorpayOrderId,
-        handler: function (response) {
-          alert(
-            `Payment successful! Payment ID: ${response.razorpay_payment_id}`
-          );
+        order_id: razorpayOrderId, // Razorpay Order ID from backend
+        handler: async function (response) {
           try {
-            const response = fetch(
-              `${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}`,
+            // Step 4: Update Payment Status in Backend
+            const paymentUpdateResponse = await fetch(
+              `${process.env.REACT_APP_BACKEND_URI}/payment/update`,
               {
-                method: "DELETE",
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpaySignature: response.razorpay_signature,
+                  orderId: order._id,
+                  userId: user._id,
+                }),
               }
             );
 
-            if (!response.ok) {
-              throw new Error("Failed to clear cart");
+            if (!paymentUpdateResponse.ok) {
+              throw new Error("Failed to update payment status on the backend");
             }
-          } catch (error) {
-            console.error(error.message);
-          }
 
-          navigate("/explore");
+            alert("Payment successful!");
+            navigate("/explore");
+          } catch (error) {
+            console.error("Error during payment update:", error.message);
+            alert("Payment successful but backend update failed!");
+          }
         },
         prefill: {
           name: user.name,
           email: user.email,
           contact: user.contact || "",
         },
+        theme: {
+          color: "#3399cc",
+        },
       };
 
+      // Step 5: Open Razorpay Checkout
       const razorpay = new window.Razorpay(options);
+      razorpay.on("payment.failed", function (response) {
+        console.error("Payment failed:", response.error);
+        alert(`Payment failed: ${response.error.reason}`);
+      });
       razorpay.open();
     } catch (error) {
-      console.error(error.message);
+      console.error("Error in handlePayment:", error.message);
+      alert("Something went wrong during payment!");
     }
   };
 

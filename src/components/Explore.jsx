@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Filter from './Filter';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Filter from "./Filter";
 
 const ExplorePage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [ProductData, setProducts] = useState([]); // To store fetched products
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const navigate = useNavigate();
@@ -14,9 +14,11 @@ const ExplorePage = () => {
     window.scrollTo(0, 0);
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/products`); // Replace with your API endpoint
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URI}/products`
+        ); // Replace with your API endpoint
         if (!response.ok) {
-          throw new Error('Failed to fetch products');
+          throw new Error("Failed to fetch products");
         }
         const data = await response.json();
         setProducts(data);
@@ -33,7 +35,7 @@ const ExplorePage = () => {
     if (window.history.length > 1) {
       navigate(-1); // Navigate to the previous page
     } else {
-      navigate('/'); // Fallback route if no history is available
+      navigate("/"); // Fallback route if no history is available
     }
   };
 
@@ -56,11 +58,12 @@ const ExplorePage = () => {
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCategory =
-      selectedCategory
-        ? product.name.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-          product.description.toLowerCase().includes(selectedCategory.toLowerCase())
-        : true;
+    const matchesCategory = selectedCategory
+      ? product.name.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+        product.description
+          .toLowerCase()
+          .includes(selectedCategory.toLowerCase())
+      : true;
 
     const matchesPrice =
       product.price >= priceRange[0] && product.price <= priceRange[1];
@@ -101,7 +104,8 @@ const ExplorePage = () => {
         </div>
 
         <p className="text-lg text-gray-600 mb-6">
-          Discover a wide variety of products that fit your needs. Use filters to narrow down your search and find the perfect items for you!
+          Discover a wide variety of products that fit your needs. Use filters
+          to narrow down your search and find the perfect items for you!
         </p>
 
         <div className="flex flex-col md:flex-row">
@@ -128,7 +132,9 @@ const ExplorePage = () => {
                     alt={product.name}
                     className="w-full h-48 md:h-64 object-contain rounded-lg mb-4"
                   />
-                  <h3 className="text-xl md:text-2xl font-semibold mb-2">{product.name}</h3>
+                  <h3 className="text-xl md:text-2xl font-semibold mb-2">
+                    {product.name}
+                  </h3>
                   <p className="text-gray-600 mb-4 text-base md:text-md">
                     {product.description.slice(0, 120)}...
                   </p>
@@ -138,11 +144,17 @@ const ExplorePage = () => {
                     {product.offer ? (
                       <div className="flex items-center space-x-2 text-lg font-bold">
                         <span className="text-gray-800">Starting from: </span>
-                        <span className="line-through text-black">₹{product.price}</span>
-                        <span className="text-green-600 font-semibold">Offer: ₹{product.offer}</span>
+                        <span className="line-through text-black">
+                          ₹{product.price}
+                        </span>
+                        <span className="text-green-600 font-semibold">
+                          Offer: ₹{product.offer}
+                        </span>
                       </div>
                     ) : (
-                      <span className="text-gray-700 font-semibold">Starting from: ₹{product.price}</span>
+                      <span className="text-gray-700 font-semibold">
+                        Starting from: ₹{product.price}
+                      </span>
                     )}
                   </div>
 
