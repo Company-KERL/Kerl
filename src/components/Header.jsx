@@ -1,5 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { UserContext } from "../context/UserContext";
+import { CartContext } from "../context/CartContext";
+
 import { FaBars, FaTimes, FaShoppingCart } from "react-icons/fa";
 import "@fontsource/cormorant-garamond/700.css";
 import { useNavigate } from "react-router-dom";
@@ -7,9 +9,9 @@ import { useNavigate } from "react-router-dom";
 const Header = () => {
   const navigate = useNavigate();
   const { isLoggedIn, logOut, user } = useContext(UserContext);
+  const { cartItemCount } = useContext(CartContext);
 
   const username = isLoggedIn ? user.username : ""; // Mock username
-  const [cartItemCount, setCartItemCount] = useState(); // Mock cart state
 
   const [isOpen, setIsOpen] = useState(false); // Mobile menu toggle
   const [showDropdown, setShowDropdown] = useState(false); // User dropdown toggle (desktop)
@@ -18,30 +20,6 @@ const Header = () => {
   const toggleMenu = () => setIsOpen(!isOpen);
   const toggleDropdown = () => setShowDropdown(!showDropdown);
   const toggleMobileDropdown = () => setShowMobileDropdown(!showMobileDropdown);
-
-  useEffect(() => {
-    const fetchCartLength = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}/length`
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch cart length");
-        }
-
-        const data = await response.json();
-        setCartItemCount(data.cartLength); // Assuming 'cartLength' is returned
-        console.log("Cart length: ", data.cartLength);
-      } catch (error) {
-        console.log(error.message);
-      }
-    };
-
-    if (user && user._id) {
-      fetchCartLength();
-    }
-  }, [user]);
 
   return (
     <header className="bg-white shadow-md fixed top-0 z-50 w-full">

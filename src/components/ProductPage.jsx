@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context/UserContext";
+import { CartContext } from "../context/CartContext";
+
 const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedSizeIndex, setSelectedSizeIndex] = useState(index);
   const [quantity, setQuantity] = useState(1);
-  const { isLoggedIn, logOut, user } = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const [isModalOpen, setIsModalOpen] = useState(false); // WhatsApp modal
   const [isImageModalOpen, setIsImageModalOpen] = useState(false); // Image modal
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false); // Informational modal for cart addition
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
+  const { cartItemCount, setCartItemCount } = useContext(CartContext);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -18,28 +21,32 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
 
   const addToCart = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          productId: product._id,
-          quantity,
-          selectedSizeIndex,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URI}/cart`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            productId: product._id,
+            quantity,
+            selectedSizeIndex,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to add item to cart');
+        throw new Error("Failed to add item to cart");
       }
 
       const data = await response.json();
-      setMessage('Item added to cart!');
-      setIsInfoModalOpen(true);  // Correctly open the info modal
+      setMessage("Item added to cart!");
+      setCartItemCount(cartItemCount + quantity); // Update cart count in context
+      setIsInfoModalOpen(true); // Correctly open the info modal
     } catch (error) {
-      alert('Error adding item to cart:', error);
+      alert("Error adding item to cart:", error);
     }
   };
 
@@ -77,7 +84,8 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
   };
 
   // Calculate total price
-  const currentPrice = product.offers[selectedSizeIndex] || product.prices[selectedSizeIndex];
+  const currentPrice =
+    product.offers[selectedSizeIndex] || product.prices[selectedSizeIndex];
   const totalPrice = currentPrice * quantity;
 
   // Open and close image modal
@@ -252,9 +260,7 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
 
       {/* Informational Modal */}
       {isInfoModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-10"
-        >
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-10">
           <div className="bg-white p-6 rounded-lg w-80 text-center">
             <p>{message}</p>
             <button

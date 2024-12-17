@@ -9,16 +9,19 @@ import ExplorePage from "./components/Explore";
 import CartPage from "./components/Cart";
 import LoginPage from "./components/Login";
 import SignupPage from "./components/Signup";
-import { UserContext } from "./context/UserContext";
-import useCheckAuth from "./utils/useCheckAuth";
 import PageNotFound from "./components/PageNotFound";
 import Order from "./components/Order";
 import ProfilePage from "./components/Profile";
 import OrdersPage from "./components/Orders";
 
+import { UserContext } from "./context/UserContext";
+
+import useCheckAuth from "./utils/useCheckAuth";
+import useCheckCount from "./utils/useCheckCount";
+
 const App = () => {
-  const { loading, isLoggedIn, user } = useContext(UserContext);
-  const [count, setCount] = useState();
+  const { loading } = useContext(UserContext);
+  useCheckCount();
   useCheckAuth();
   // useEffect(() => {
   //   console.log(isLoggedIn);
@@ -31,7 +34,7 @@ const App = () => {
 
   return (
     <Router>
-      <Header/>
+      <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route
@@ -44,12 +47,9 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/order" element={<Order />} />
-        <Route path="/profile" element={<ProfilePage/>}/>
-        <Route path="/orders" element={<OrdersPage/>}/>
-
-
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/orders" element={<OrdersPage />} />
         <Route path="*" element={<PageNotFound />} />
-        
       </Routes>
       <Footer />
     </Router>
