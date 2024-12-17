@@ -151,7 +151,30 @@ const Order = () => {
 
       // Step 5: Open Razorpay Checkout
       const razorpay = new window.Razorpay(options);
-      razorpay.on("payment.failed", function (response) {
+      razorpay.on("payment.failed", async function (response) {
+        try {
+          const paymentUpdateResponse = await fetch(
+            `${process.env.REACT_APP_BACKEND_URI}/payment/update`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpaySignature: response.razorpay_signature,
+                orderId: order._id,
+                userId: user._id,
+              }),
+            }
+          );
+
+          if (!paymentUpdateResponse.ok) {
+            throw new Error("Failed to update payment status on the backend");
+          }
+        } catch (error) {
+          console.error("Error during payment update:", error.message);
+          alert("Payment failed but backend update failed!");
+        }
         console.error("Payment failed:", response.error);
         alert(`Payment failed: ${response.error.reason}`);
       });
