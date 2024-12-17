@@ -8,15 +8,24 @@ const SignupPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState({});
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
+
   const [phoneNumber, setPhoneNumber] = useState("");
   const navigate = useNavigate();
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
   const openInfoModal = () => setInfoModalOpen(true);
-  const closeInfoModal = () => {setInfoModalOpen(false);navigate("/login");};
-  const [message1, setMessage] = useState(''); // Corrected state initialization
+  const closeInfoModal = () => {
+    setInfoModalOpen(false);
+    navigate("/login");
+  };
+  const [message1, setMessage] = useState(""); // Corrected state initialization
 
   const handleSignup = (e) => {
+    setAddress({ street, city, state, zip });
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords do not match");
@@ -40,7 +49,6 @@ const SignupPage = () => {
         console.error(err);
         alert("An error occurred. Please try again later.");
       });
-    
   };
 
   return (
@@ -130,18 +138,66 @@ const SignupPage = () => {
 
           <div>
             <label
-              htmlFor="address"
+              htmlFor="streetAddress"
               className="block text-gray-700 font-medium mb-2"
             >
-              Full Address
+              Street Address
             </label>
             <input
-              id="address"
+              id="streetAddress"
               type="text"
-              placeholder="Enter your Address"
+              placeholder="Enter your Street Address"
               className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              required
+            />
+
+            <label
+              htmlFor="city"
+              className="block text-gray-700 font-medium mt-4 mb-2"
+            >
+              City
+            </label>
+            <input
+              id="city"
+              type="text"
+              placeholder="Enter your City"
+              className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              required
+            />
+
+            <label
+              htmlFor="state"
+              className="block text-gray-700 font-medium mt-4 mb-2"
+            >
+              State
+            </label>
+            <input
+              id="state"
+              type="text"
+              placeholder="Enter your State"
+              className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              required
+            />
+
+            <label
+              htmlFor="pincode"
+              className="block text-gray-700 font-medium mt-4 mb-2"
+            >
+              Pincode
+            </label>
+            <input
+              id="pincode"
+              type="text"
+              placeholder="Enter your Pincode"
+              className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
+              value={zip}
+              onChange={(e) => setZip(e.target.value)}
               required
             />
           </div>
@@ -184,10 +240,7 @@ const SignupPage = () => {
 
         {/* Modal */}
         {isInfoModalOpen && (
-          <InformationalModal
-            message={message1}
-            onClose={closeInfoModal}
-          />
+          <InformationalModal message={message1} onClose={closeInfoModal} />
         )}
 
         {/* Divider */}

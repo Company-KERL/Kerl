@@ -1,81 +1,72 @@
-import React, { useState, useContext } from 'react';
-import { UserContext } from '../context/UserContext';
+import React, { useState, useContext } from "react";
+import { UserContext } from "../context/UserContext";
 
 const ProfilePage = () => {
-  const { user, updateUser } = useContext(UserContext); // Assuming you have an updateUser function to handle updates
+  const { user } = useContext(UserContext);
   const [editMode, setEditMode] = useState(false);
 
   // State for handling form fields
-  const [username, setUsername] = useState(user.username);
-  const [email, setEmail] = useState(user.email);
-  const [password, setPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [address, setAddress] = useState(user.address);
-  const [phone, setPhone] = useState(user.phone);
-  const [error, setError] = useState('');
+  const [street, setStreet] = useState(user.address?.street || "");
+  const [city, setCity] = useState(user.address?.city || "");
+  const [state, setState] = useState(user.address?.state || "");
+  const [zip, setZip] = useState(user.address?.zip || "");
+  const [phone, setPhone] = useState(user.phone || "");
+  const [error, setError] = useState("");
 
   // Handle form submission (for saving changes)
-
-
-
   const handleSaveChanges = async () => {
-    // Validate passwords if changing password
-    if (newPassword && newPassword !== confirmPassword) {
-      setError('New password and confirm password do not match.');
+    // Validation
+    if (!street || !city || !state || !zip || !phone) {
+      setError("All fields are required.");
       return;
     }
-    if (newPassword && !currentPassword) {
-      setError('Please enter your current password.');
-      return;
-    }
+    setError(""); // Clear previous errors
 
-    const updatedUser = {
-      username,
-      email,
-      password: newPassword || password, // Use new password if provided
-      address,
-      phone,
+    const updatedAddress = {
+      street,
+      city,
+      state,
+      zip,
     };
 
-    // Call API or context function to update the user details
-    
     try {
-        const response = await fetch('/profile', {
-          method: 'PUT',
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URI}/profile`,
+        {
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(updatedUser),
-          credentials: 'include', // Ensure cookies are sent with the request
-        });
-    
-        if (response.ok) {
-          const data = await response.json();
-          updateUser(updatedUser); // Update user in context
-          setEditMode(false); // Exit edit mode after saving
-        } else {
-          const errorData = await response.json();
-          alert(errorData.message || 'Failed to update profile.');
+          body: JSON.stringify({
+            address: updatedAddress,
+            phone,
+          }),
+          credentials: "include",
         }
-      } catch (error) {
-        console.error("Error updating user details:", error);
-        alert("Failed to update profile.");
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setEditMode(false); // Exit edit mode after saving
+        alert("Profile updated successfully!");
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to update profile.");
       }
+    } catch (error) {
+      console.error("Error updating user details:", error);
+      setError("Failed to update profile.");
+    }
   };
 
   // Handle cancel
   const handleCancel = () => {
-    setUsername(user.username);
-    setEmail(user.email);
-    setPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setCurrentPassword('');
-    setAddress(user.address);
-    setPhone(user.phone);
-    setError('');
+    setStreet(user.address?.street || "");
+    setCity(user.address?.city || "");
+    setState(user.address?.state || "");
+    setZip(user.address?.zip || "");
+    setPhone(user.phone || "");
+    setError("");
     setEditMode(false);
   };
 
@@ -84,96 +75,142 @@ const ProfilePage = () => {
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Your Profile</h1>
       <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold text-gray-800">Personal Information</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Personal Information
+          </h2>
           <button
             onClick={() => setEditMode(!editMode)}
             className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
           >
-            {editMode ? 'Cancel' : 'Edit'}
+            {editMode ? "Cancel" : "Edit"}
           </button>
         </div>
 
         {/* User Details Form */}
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <label className="text-lg font-medium text-gray-700 w-32">Username:</label>
+            <label className="text-lg font-medium text-gray-700 w-32">
+              Name:
+            </label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              disabled={!editMode}
+              value={user.name}
+              disabled={true}
               className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
             />
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <label className="text-lg font-medium text-gray-700 w-32">Email:</label>
+            <label className="text-lg font-medium text-gray-700 w-32">
+              Username:
+            </label>
+            <input
+              type="text"
+              value={user.username}
+              disabled={true}
+              className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <label className="text-lg font-medium text-gray-700 w-32">
+              Email:
+            </label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={!editMode}
+              value={user.email}
+              disabled={true}
               className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
             />
           </div>
 
-          {/* Current Password (only visible in edit mode if changing password) */}
-          {editMode && (
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              <label className="text-lg font-medium text-gray-700 w-32">Current Password:</label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          )}
-
-          {/* New Password */}
-          {editMode && (
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              <label className="text-lg font-medium text-gray-700 w-32">New Password:</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          )}
-
-          {/* Confirm New Password */}
-          {editMode && (
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              <label className="text-lg font-medium text-gray-700 w-32">Confirm Password:</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          )}
-
+          {/* Address Fields */}
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <label className="text-lg font-medium text-gray-700 w-32">Address:</label>
-            <textarea
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              disabled={!editMode}
+            <label
+              htmlFor="streetAddress"
+              className="text-lg font-medium text-gray-700 w-32"
+            >
+              Street Address:
+            </label>
+            <input
+              id="streetAddress"
+              type="text"
               className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
+              value={street}
+              disabled={!editMode}
+              onChange={(e) => setStreet(e.target.value)}
             />
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <label className="text-lg font-medium text-gray-700 w-32">Phone:</label>
+            <label
+              htmlFor="city"
+              className="text-lg font-medium text-gray-700 w-32"
+            >
+              City:
+            </label>
+            <input
+              id="city"
+              type="text"
+              className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
+              value={city}
+              disabled={!editMode}
+              onChange={(e) => setCity(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <label
+              htmlFor="state"
+              className="text-lg font-medium text-gray-700 w-32"
+            >
+              State:
+            </label>
+            <input
+              id="state"
+              type="text"
+              className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
+              value={state}
+              disabled={!editMode}
+              onChange={(e) => setState(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <label
+              htmlFor="pincode"
+              className="text-lg font-medium text-gray-700 w-32"
+            >
+              Pincode:
+            </label>
+            <input
+              id="pincode"
+              type="text"
+              className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
+              value={zip}
+              disabled={!editMode}
+              onChange={(e) => setZip(e.target.value)}
+            />
+          </div>
+
+          {/* Phone Field */}
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <label className="text-lg font-medium text-gray-700 w-32">
+              Phone:
+            </label>
             <input
               type="text"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
               disabled={!editMode}
+              onChange={(e) => setPhone(e.target.value)}
               className="w-full md:w-2/3 border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-blue-500"
+              onBlur={(e) => {
+                const phone = e.target.value;
+                if (!/^\d{10}$/.test(phone)) {
+                  alert("Phone number must be 10 digits");
+                  setPhone("");
+                }
+              }}
             />
           </div>
         </div>
