@@ -1,28 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-
-const sampleOrders = [
-  {
-    _id: "1",
-    status: "Shipped",
-    totalPrice: 150,
-    address: "123 Main St, City, Country",
-    items: [
-      { productId: { name: "Product 1" }, quantity: 2 },
-      { productId: { name: "Product 2" }, quantity: 1 },
-    ],
-  },
-  {
-    _id: "2",
-    status: "Processing",
-    totalPrice: 200,
-    address: "456 Maple Ave, City, Country",
-    items: [
-      { productId: { name: "Product 3" }, quantity: 3 },
-      { productId: { name: "Product 4" }, quantity: 1 },
-    ],
-  },
-];
+import { UserContext } from "../context/UserContext";
 
 const OrderStatusProgress = ({ status }) => {
   const stages = ["Order Received", "Processing", "Shipped", "Delivered"];
@@ -30,34 +8,51 @@ const OrderStatusProgress = ({ status }) => {
 
   return (
     <div className="relative pt-1">
-  <div className="flex justify-between mb-2">
-    {stages.map((stage, index) => (
-      <div
-        key={stage}
-        className="text-sm font-medium text-gray-600 text-center w-full"
-      >
-        {stage}
+      <div className="flex justify-between mb-2">
+        {stages.map((stage, index) => (
+          <div
+            key={stage}
+            className="text-sm font-medium text-gray-600 text-center w-full"
+          >
+            {stage}
+          </div>
+        ))}
       </div>
-    ))}
-  </div>
-  <div className="flex items-center justify-between mb-2">
-    {stages.map((stage, index) => (
-      <div
-        key={stage}
-        className={`h-4 w-full rounded-lg ${
-          index <= currentStageIndex ? "bg-blue-500" : "bg-gray-300"
-        }`}
-      />
-    ))}
-  </div>
-</div>
+      <div className="flex items-center justify-between mb-2">
+        {stages.map((stage, index) => (
+          <div
+            key={stage}
+            className={`h-4 w-full rounded-lg ${
+              index <= currentStageIndex ? "bg-blue-500" : "bg-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
   );
 };
 
 const OrderPage = () => {
+  const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const navigate = useNavigate(); // Move this inside the component
+  const { user } = useContext(UserContext);
 
+  useEffect(() => {
+    // Fetch orders from the server
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URI}/orders/${user._id}`
+        );
+        const data = await response.json();
+        setOrders(data.orders);
+      } catch (error) {
+        console.error("Error fetching orders: ", error);
+      }
+    };
+    fetchOrders();
+  }, []);
   const handleOrderClick = (order) => {
     setSelectedOrder(order);
   };
@@ -99,7 +94,7 @@ const OrderPage = () => {
 
       {/* Order List */}
       <ul>
-        {sampleOrders.map((order) => (
+        {orders.map((order) => (
           <li
             key={order._id}
             className="border p-4 mb-4 rounded-md shadow cursor-pointer"
@@ -123,7 +118,9 @@ const OrderPage = () => {
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-1/2">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-semibold">Order ID: {selectedOrder._id}</h2>
+              <h2 className="text-2xl font-semibold">
+                Order ID: {selectedOrder._id}
+              </h2>
               <button
                 onClick={() => setSelectedOrder(null)}
                 className="text-gray-500 hover:text-gray-700"
@@ -140,7 +137,9 @@ const OrderPage = () => {
                 </li>
               ))}
             </ul>
-            <h3 className="font-semibold mt-4">Total Price: ${selectedOrder.totalPrice}</h3>
+            <h3 className="font-semibold mt-4">
+              Total Price: ${selectedOrder.totalPrice}
+            </h3>
 
             {/* Progress Bar */}
             <OrderStatusProgress status={selectedOrder.status} />
