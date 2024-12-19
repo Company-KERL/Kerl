@@ -1,10 +1,11 @@
 import React, { useState, useContext } from "react";
 import { UserContext } from "../context/UserContext";
+import Loader from "./Loading";
 
 const ProfilePage = () => {
   const { user } = useContext(UserContext);
   const [editMode, setEditMode] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   // State for handling form fields
   const [street, setStreet] = useState(user.address?.street || "");
   const [city, setCity] = useState(user.address?.city || "");
@@ -30,6 +31,7 @@ const ProfilePage = () => {
     };
 
     try {
+      setLoading(true);
       const response = await fetch(
         `${process.env.REACT_APP_BACKEND_URI}/profile`,
         {
@@ -56,6 +58,8 @@ const ProfilePage = () => {
     } catch (error) {
       console.error("Error updating user details:", error);
       setError("Failed to update profile.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,6 +73,10 @@ const ProfilePage = () => {
     setError("");
     setEditMode(false);
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="container mx-auto px-6 py-10 md:px-16 mt-16">

@@ -2,17 +2,20 @@ import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import Modal from "./ConfirmModal";
+import Loader from "./Loading";
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [showModal, setShowModal] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null); // Track the item to delete
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [loading, setLoading] = useState(false);
   const { user } = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCart = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
           `${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}`
@@ -26,13 +29,15 @@ const CartPage = () => {
         setCartItems(data.cart.items); // Assuming 'cart.items' is an array of cart items
       } catch (error) {
         console.log(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     if (user && user._id) {
       fetchCart();
     }
-  }, [user]);
+  }, [user, setLoading]);
 
   // Calculate the total price whenever cartItems change
   useEffect(() => {
@@ -147,6 +152,10 @@ const CartPage = () => {
   const handleClick = (item) => {
     navigate(`/product/${item.productId._id}`);
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="container mx-auto px-8 md:px-16 py-32">

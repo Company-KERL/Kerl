@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import { formatAddress } from "../utils/formatAddress";
+import Loader from "./Loading";
 
 const OrderStatusProgress = ({ status }) => {
   const stages = ["Order Received", "Processing", "Shipped", "Delivered"];
@@ -38,10 +39,12 @@ const OrderPage = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const navigate = useNavigate(); // Move this inside the component
   const { user } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Fetch orders from the server
     const fetchOrders = async () => {
+      setLoading(true);
       try {
         const response = await fetch(
           `${process.env.REACT_APP_BACKEND_URI}/orders/${user._id}`
@@ -50,10 +53,13 @@ const OrderPage = () => {
         setOrders(data.orders);
       } catch (error) {
         console.error("Error fetching orders: ", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchOrders();
-  }, []);
+  }, [setLoading, user._id]);
+
   const handleOrderClick = (order) => {
     setSelectedOrder(order);
   };
@@ -65,6 +71,10 @@ const OrderPage = () => {
       navigate("/"); // Fallback route if no history is available
     }
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="container mx-auto mt-36 p-4 px-16 pb-36">

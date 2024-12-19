@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Filter from "./Filter";
+import Loader from "./Loading";
 
 const ExplorePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [ProductData, setProducts] = useState([]); // To store fetched products
   const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Reset scroll to top when the component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
+    setLoading(true);
     const fetchProducts = async () => {
       try {
         const response = await fetch(
@@ -25,11 +28,13 @@ const ExplorePage = () => {
         console.log(data);
       } catch (error) {
         console.error(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProducts();
-  }, []);
+  }, [setLoading]);
 
   const handleBack = () => {
     if (window.history.length > 1) {
@@ -70,6 +75,10 @@ const ExplorePage = () => {
 
     return matchesSearch && matchesCategory && matchesPrice;
   });
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <section className="mt-16 py-16 bg-gray-50" id="explore">

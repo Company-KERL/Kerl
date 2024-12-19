@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import InformationalModal from "./InfoModal";
+import Loader from "./Loading";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -11,12 +12,17 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [isModalOpen, setModalOpen] = useState(false); // Modal state
   const [message, setMessage] = useState(""); // Modal message
+  const [loading, setLoading] = useState(false);
 
-  const closeModal = () => {setModalOpen(false);navigate("/");} // Close modal
+  const closeModal = () => {
+    setModalOpen(false);
+    navigate("/");
+  }; // Close modal
 
   const handleLogin = (e) => {
     e.preventDefault();
 
+    setLoading(true);
     fetch(`${process.env.REACT_APP_BACKEND_URI}/login`, {
       method: "POST",
       headers: {
@@ -36,7 +42,6 @@ const LoginPage = () => {
           setMessage(data.message);
           logIn(data.user);
           setModalOpen(true); // Open the modal on success
-          
         } else {
           setMessage(data.message || "Login failed. Please try again.");
           setModalOpen(true); // Open the modal on failure
@@ -46,8 +51,15 @@ const LoginPage = () => {
         console.error(err);
         setMessage("An error occurred. Please try again later.");
         setModalOpen(true); // Open the modal on error
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
+
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <section className="mt-16 min-h-[800px] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -98,6 +110,15 @@ const LoginPage = () => {
             />
           </div>
 
+          <div className="-mt-10">
+            <Link
+              to="/reset-password"
+              className="text-green-600 hover:underline font-semibold"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
           {/* Login Button */}
           <button
             type="submit"
@@ -123,10 +144,7 @@ const LoginPage = () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <InformationalModal
-          message={message}
-          onClose={closeModal}
-        />
+        <InformationalModal message={message} onClose={closeModal} />
       )}
     </section>
   );

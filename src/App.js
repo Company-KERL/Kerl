@@ -13,6 +13,8 @@ import PageNotFound from "./components/PageNotFound";
 import Order from "./components/Order";
 import ProfilePage from "./components/Profile";
 import OrdersPage from "./components/Orders";
+import Reset from "./components/Reset";
+import Loader from "./components/Loading";
 
 import { UserContext } from "./context/UserContext";
 
@@ -20,7 +22,7 @@ import useCheckAuth from "./utils/useCheckAuth";
 import useCheckCount from "./utils/useCheckCount";
 
 const App = () => {
-  const { loading } = useContext(UserContext);
+  const { loading, setLoading } = useContext(UserContext);
   useCheckCount();
   useCheckAuth();
   // useEffect(() => {
@@ -29,7 +31,7 @@ const App = () => {
   // }, [isLoggedIn, user]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <Loader />;
   }
 
   return (
@@ -49,6 +51,7 @@ const App = () => {
         <Route path="/order" element={<Order />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/reset-password" element={<Reset />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <Footer />
