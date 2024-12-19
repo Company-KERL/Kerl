@@ -6,7 +6,8 @@ import Loader from "./Loading";
 
 const OrderStatusProgress = ({ status }) => {
   const stages = ["Order Received", "Processing", "Shipped", "Delivered"];
-  const currentStageIndex = stages.indexOf(status);
+  const orderStages = ["received", "pending", "shipped", "completed"];
+  const currentStageIndex = orderStages.indexOf(status);
 
   return (
     <div className="relative pt-1">
@@ -50,7 +51,11 @@ const OrderPage = () => {
           `${process.env.REACT_APP_BACKEND_URI}/orders/${user._id}`
         );
         const data = await response.json();
-        setOrders(data.orders);
+        const completedOrders = data.orders.filter(
+          (order) => order.paymentStatus === "completed"
+        );
+        setOrders(completedOrders);
+        console.log(completedOrders);
       } catch (error) {
         console.error("Error fetching orders: ", error);
       } finally {
@@ -117,7 +122,22 @@ const OrderPage = () => {
                   <h3 className="text-xl font-semibold">
                     Order ID: {order._id}
                   </h3>
-                  <p>Status: {order.status}</p>
+                  {order.status === "pending" ? (
+                    <p className="text-red-500">Order {order.status}</p>
+                  ) : order.status === "completed" ? (
+                    <p className="text-green-500">Order {order.status}</p>
+                  ) : (
+                    <p className="text-yellow-500">Order {order.status}</p>
+                  )}
+                  {order.paymentStatus === "completed" ? (
+                    <p className="text-green-500">
+                      Payment {order.paymentStatus}
+                    </p>
+                  ) : (
+                    <p className="text-red-500">
+                      Payment {order.paymentStatus}
+                    </p>
+                  )}
                   <p>Total Price: ${order.totalPrice}</p>
                   <p>Address: {formatAddress(order.address)}</p>
                 </div>
