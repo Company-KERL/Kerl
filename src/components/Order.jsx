@@ -4,21 +4,11 @@ import { CartContext } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { formatAddress } from "../utils/formatAddress";
 
-// Example usage
-const address = {
-  street: "123 Main St",
-  city: "New York",
-  state: "NY",
-  zip: "10001",
-};
-
-const formattedAddress = formatAddress(address);
-console.log(formattedAddress); // Output: "123 Main St, New York, NY, 10001"
-
 const Order = () => {
   const { user } = useContext(UserContext);
   const { setCartItemCount } = useContext(CartContext);
-  const [selectedAddress, setSelectedAddress] = useState({});
+  const [selectedAddress, setSelectedAddress] = useState(null); // Initialize as null
+  const [showAddAddress, setShowAddAddress] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [items, setItems] = useState([]);
   const [street, setStreet] = useState("");
@@ -27,6 +17,7 @@ const Order = () => {
   const [zip, setZip] = useState("");
   const navigate = useNavigate();
 
+  // Fetch cart items
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -46,11 +37,12 @@ const Order = () => {
     fetchItems();
   }, [user]);
 
+  // Fetch saved addresses
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URI}/order/addresses/${user._id}`
+          `${process.env.REACT_APP_BACKEND_URI}/orders/addresses/${user._id}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch addresses");
@@ -65,22 +57,23 @@ const Order = () => {
     fetchAddresses();
   }, [user]);
 
+  // Razorpay SDK loader
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
-    script.onload = () => {
-      console.log("Razorpay SDK loaded successfully.");
-    };
-    script.onerror = () => {
-      console.error("Failed to load Razorpay SDK.");
-    };
     document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
 
   const handlePayment = async () => {
+    if (!selectedAddress) {
+      alert("Please select or add an address.");
+      return;
+    }
     try {
-      setSelectedAddress({ street, city, state, zip });
       // Step 1: Create Order in Backend
       const orderResponse = await fetch(
         `${process.env.REACT_APP_BACKEND_URI}/orders`,
@@ -205,7 +198,30 @@ const Order = () => {
   };
 
   const handleAddressChange = (event) => {
-    setSelectedAddress(event.target.value);
+    const selected = event.target.value;
+    if (selected === "add") {
+      setShowAddAddress(true);
+      return;
+    }
+    const addressObj = addresses.find(
+      (addr) => formatAddress(addr) === selected
+    );
+    setSelectedAddress(addressObj || null);
+  };
+
+  const handleAddAddress = () => {
+    if (street && city && state && zip) {
+      const newAddress = { street, city, state, zip };
+      setAddresses([...addresses, newAddress]);
+      setSelectedAddress(newAddress);
+      setShowAddAddress(false);
+      setStreet("");
+      setCity("");
+      setState("");
+      setZip("");
+    } else {
+      alert("Please fill in all address fields.");
+    }
   };
 
   return (
@@ -231,104 +247,90 @@ const Order = () => {
           )}
         </ul>
 
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Select Address
-        </h2>
-        <select
-          value={selectedAddress}
-          onChange={handleAddressChange}
-          className="w-full p-2 border border-gray-300 rounded-lg mb-6 focus:ring focus:ring-indigo-200"
-        >
-          <option value="" disabled>
-            Select an address
-          </option>
-          {addresses.length > 0 ? (
-            addresses.map((address, idx) => (
-              <option key={idx} value={address}>
-                {formatAddress(address)}
-              </option>
-            ))
-          ) : (
-            <option value={user.address}>
-              {formatAddress(user.address) || "No addresses found"}
-            </option>
-          )}
-        </select>
         <div>
-          <label
-            htmlFor="streetAddress"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            Street Address
-          </label>
-          <input
-            id="streetAddress"
-            type="text"
-            placeholder="Enter your Street Address"
-            className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-            required
-          />
+          {showAddAddress ? (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Add a New Address
+              </h2>
 
-          <label
-            htmlFor="city"
-            className="block text-gray-700 font-medium mt-4 mb-2"
-          >
-            City
-          </label>
-          <input
-            id="city"
-            type="text"
-            placeholder="Enter your City"
-            className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            required
-          />
+              {/* Address Input Fields */}
+              <input
+                type="text"
+                placeholder="Street"
+                className="w-full px-4 py-2 border rounded-lg shadow-md"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="City"
+                className="w-full px-4 py-2 border rounded-lg shadow-md"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="State"
+                className="w-full px-4 py-2 border rounded-lg shadow-md"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="Zip"
+                className="w-full px-4 py-2 border rounded-lg shadow-md"
+                value={zip}
+                onChange={(e) => setZip(e.target.value)}
+              />
 
-          <label
-            htmlFor="state"
-            className="block text-gray-700 font-medium mt-4 mb-2"
-          >
-            State
-          </label>
-          <input
-            id="state"
-            type="text"
-            placeholder="Enter your State"
-            className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            required
-          />
-
-          <label
-            htmlFor="pincode"
-            className="block text-gray-700 font-medium mt-4 mb-2"
-          >
-            Pincode
-          </label>
-          <input
-            id="pincode"
-            type="text"
-            placeholder="Enter your Pincode"
-            className="w-full px-4 py-2 border rounded-lg shadow-md focus:ring-2 focus:ring-green-500 transition-all duration-300"
-            value={zip}
-            onChange={(e) => setZip(e.target.value)}
-            required
-          />
+              <div className="flex gap-5">
+                <button
+                  onClick={handleAddAddress}
+                  className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg"
+                >
+                  Save Address
+                </button>
+                <button
+                  onClick={() => setShowAddAddress(false)}
+                  className="mt-4 px-4 py-2 bg-gray-600 text-white rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Select Address
+              </h2>
+              <select
+                onChange={handleAddressChange}
+                className="w-full px-4 py-2 border rounded-lg"
+                value={selectedAddress ? formatAddress(selectedAddress) : ""}
+              >
+                <option value="" disabled>
+                  Select an address
+                </option>
+                {addresses.map((address, idx) => (
+                  <option key={idx} value={formatAddress(address)}>
+                    {formatAddress(address)}
+                  </option>
+                ))}
+                <option value="add">Add a new address</option>
+              </select>
+            </div>
+          )}
         </div>
 
         <button
           onClick={handlePayment}
           disabled={!selectedAddress}
-          className={`w-full py-2 px-4 text-white font-semibold rounded-lg shadow-md transition-colors 
-            ${
-              selectedAddress
-                ? "bg-indigo-600 hover:bg-indigo-700"
-                : "bg-gray-400 cursor-not-allowed"
-            }`}
+          className={`w-full py-2 px-4 text-white font-semibold rounded-lg ${
+            selectedAddress
+              ? "bg-indigo-600 hover:bg-indigo-700"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
         >
           Proceed to Payment
         </button>

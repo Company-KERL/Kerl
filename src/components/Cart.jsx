@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context/UserContext";
+import { CartContext } from "../context/CartContext";
+
 import { useNavigate } from "react-router-dom";
 import Modal from "./ConfirmModal";
 import Loader from "./Loading";
@@ -11,6 +13,7 @@ const CartPage = () => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [loading, setLoading] = useState(false);
   const { user } = useContext(UserContext);
+  const { cartItemCount, setCartItemCount } = useContext(CartContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,10 +53,10 @@ const CartPage = () => {
   }, [cartItems]);
 
   const handleQuantityChange = async (index, newQuantity) => {
+    setCartItemCount(cartItemCount + newQuantity - cartItems[index].quantity);
     const updatedCartItems = [...cartItems];
     updatedCartItems[index].quantity = newQuantity;
     setCartItems(updatedCartItems);
-
     // Recalculate total price
     const newTotalPrice = updatedCartItems.reduce(
       (sum, item) =>
@@ -120,9 +123,10 @@ const CartPage = () => {
           }),
         }
       );
-
       if (!response.ok) {
         throw new Error("Failed to remove item");
+      } else {
+        setCartItemCount(cartItemCount - cartItems[itemToDelete].quantity);
       }
     } catch (error) {
       console.error(error.message);
