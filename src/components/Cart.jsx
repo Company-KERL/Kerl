@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { UserContext } from "../context/UserContext";
 import { CartContext } from "../context/CartContext";
-
 import { useNavigate } from "react-router-dom";
 import Modal from "./ConfirmModal";
 import Loader from "./Loading";
@@ -16,145 +15,140 @@ const CartPage = () => {
   const { cartItemCount, setCartItemCount } = useContext(CartContext);
   const navigate = useNavigate();
 
+  const getLocalStorageCart = () => {
+    const cart = JSON.parse(localStorage.getItem("cart")) || { items: [], totalPrice: 0 };
+    return cart;
+  };
+
+  const setLocalStorageCart = (newCart) => {
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  };
+
   useEffect(() => {
     const fetchCart = async () => {
       setLoading(true);
-      try {
-        const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch cart items");
+      if (user && user._id) {
+        try {
+          const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}`);
+          if (!response.ok) throw new Error("Failed to fetch cart items");
+          const data = await response.json();
+          setCartItems(data.cart.items);
+          setTotalPrice(data.cart.totalPrice);
+        } catch (error) {
+          console.log(error.message);
         }
-
-        const data = await response.json();
-        setCartItems(data.cart.items); // Assuming 'cart.items' is an array of cart items
-      } catch (error) {
-        console.log(error.message);
-      } finally {
-        setLoading(false);
+      } else {
+        const cart = getLocalStorageCart();
+        setCartItems(cart.items);
+        setTotalPrice(cart.totalPrice);
       }
+      setLoading(false);
     };
+    fetchCart();
+  }, [user]);
 
-    if (user && user._id) {
-      fetchCart();
-    }
-  }, [user, setLoading]);
-
-  // Calculate the total price whenever cartItems change
   useEffect(() => {
     const total = cartItems.reduce(
-      (sum, item) =>
-        sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
+      (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
       0
     );
     setTotalPrice(total);
+    const cart = getLocalStorageCart();
+    cart.totalPrice = total;
+    setLocalStorageCart(cart);
   }, [cartItems]);
 
   const handleQuantityChange = async (index, newQuantity) => {
-    setCartItemCount(cartItemCount + newQuantity - cartItems[index].quantity);
     const updatedCartItems = [...cartItems];
     updatedCartItems[index].quantity = newQuantity;
     setCartItems(updatedCartItems);
-    // Recalculate total price
+
     const newTotalPrice = updatedCartItems.reduce(
-      (sum, item) =>
-        sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
+      (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
       0
     );
     setTotalPrice(newTotalPrice);
 
-    // Update quantity in the backend
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URI}/cart`,
-        {
+    const cart = getLocalStorageCart();
+    cart.totalPrice = newTotalPrice;
+    setLocalStorageCart(cart);
+
+    if (user && user._id) {
+      try {
+        await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user._id,
             productId: updatedCartItems[index].productId._id,
             quantity: newQuantity,
             selectedSizeIndex: updatedCartItems[index].selectedSizeIndex,
           }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to update quantity");
+        });
+      } catch (error) {
+        console.error(error.message);
       }
-    } catch (error) {
-      console.error(error.message);
+    } else {
+      setLocalStorageCart({ ...getLocalStorageCart(), items: updatedCartItems });
     }
   };
 
   const handleDeleteItem = (index) => {
-    setItemToDelete(index); // Set the item to delete
-    setShowModal(true); // Open the modal
+    setItemToDelete(index);
+    setShowModal(true);
   };
 
   const confirmDelete = async () => {
     const updatedCartItems = cartItems.filter((_, i) => i !== itemToDelete);
     setCartItems(updatedCartItems);
 
-    // Recalculate total price after deletion
     const newTotalPrice = updatedCartItems.reduce(
-      (sum, item) =>
-        sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
+      (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
       0
     );
     setTotalPrice(newTotalPrice);
 
-    // Delete item from backend
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URI}/cart`,
-        {
+    const cart = getLocalStorageCart();
+    cart.items = updatedCartItems;
+    cart.totalPrice = newTotalPrice;
+    setLocalStorageCart(cart);
+
+    if (user && user._id) {
+      try {
+        await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart`, {
           method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: user._id,
             productId: cartItems[itemToDelete].productId._id,
           }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to remove item");
-      } else {
+        });
         setCartItemCount(cartItemCount - cartItems[itemToDelete].quantity);
+      } catch (error) {
+        console.error(error.message);
       }
-    } catch (error) {
-      console.error(error.message);
     }
-
-    setShowModal(false); // Close the modal after confirming
+    setShowModal(false);
   };
 
   const handleCloseModal = () => {
-    setShowModal(false); // Close the modal without confirming
+    setShowModal(false);
   };
 
   const handleProceedToPayment = () => {
-    // Logic to proceed to payment (this could be a redirect to a payment gateway or modal)
-    alert("Proceeding to payment...");
     navigate("/order");
   };
 
   const handleBack = () => {
     if (window.history.length > 1) {
-      navigate(-1); // Navigate to the previous page
+      navigate(-1);
     } else {
-      navigate("/explore"); // Fallback route if no history is available
+      navigate("/explore");
     }
   };
 
   const handleClick = (item) => {
-    navigate(`/product/${item.productId._id}`);
+    navigate(`/product/${item.productId._id}/${item.selectedSizeIndex}`);
   };
 
   if (loading) {

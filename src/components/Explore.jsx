@@ -176,6 +176,7 @@ const ExplorePage = () => {
                   >
                     View More
                   </Link>
+                  
                 </div>
               ))
             ) : (

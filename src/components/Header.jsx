@@ -230,7 +230,19 @@ const Header = () => {
               >
                 Login
               </a>
+              <a
+                href="/cart"
+                className="flex items-center text-gray-800 hover:text-gray-900 relative"
+              >
+                <FaShoppingCart className="mr-1" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {cartItemCount}
+                  </span>
+                )}
+              </a>
             </div>
+
           )}
         </div>
       </div>

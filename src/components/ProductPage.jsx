@@ -15,15 +15,25 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    if (user) {
+      // If logged in, use the user's cart data
+      const storedCartCount = localStorage.getItem("cartItemCount");
+      if (storedCartCount) {
+        setCartItemCount(parseInt(storedCartCount, 10));
+      }
+    }
+  }, [user, setCartItemCount]);
 
-  const userId = user._id;
+  const userId = user?._id;
+
+  
+  
 
   const addToCart = async () => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URI}/cart`,
-        {
+      if (userId) {
+        // If user is logged in, proceed with API request to add the item to the cart
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URI}/cart`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -34,17 +44,75 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
             quantity,
             selectedSizeIndex,
           }),
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to add item to cart");
         }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to add item to cart");
+  
+        const data = await response.json();
+  
+        // Update cart count and modal based on the response
+        setMessage("Item added to cart!");
+        setCartItemCount(data.cart.items.reduce((count, item) => count + item.quantity, 0)); // Update cart count with the total quantity
+        setIsInfoModalOpen(true); // Correctly open the info modal
+      } else {
+        // If the user is not logged in, save to localStorage in the same format as the backend response
+  
+        const cart = JSON.parse(localStorage.getItem("cart")) || {
+          userId: null,  // Set as null if the user is not logged in
+          items: [],
+          totalPrice: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+  
+        // Create the cart item object
+        const cartItem = {
+          productId: {
+            _id: product._id,  // Only store the productId and other relevant info
+            name: product.name,
+            images: product.images,  // Assuming the images are part of the product object
+            sizes: product.sizes,  // Assuming sizes are part of the product object
+            offers:product.offers,
+            prices: product.prices,  // Assuming price is part of the product object
+            description: product.description
+          },
+          quantity,
+          
+          selectedSizeIndex,
+        };
+  
+        // Check if the product already exists in the cart
+        const existingItemIndex = cart.items.findIndex(
+          (item) => item.productId._id === product._id && item.selectedSizeIndex === selectedSizeIndex
+        );
+  
+        if (existingItemIndex !== -1) {
+          // Update the quantity if the product exists
+          cart.items[existingItemIndex].quantity += quantity;
+        } else {
+          // Add the new item to the cart if it doesn't exist
+          cart.items.push(cartItem);
+        }
+  
+        // Calculate the total price of the cart
+        cart.totalPrice = cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
+  
+        // Update timestamps
+        cart.updatedAt = new Date();
+  
+        // Store the updated cart back to localStorage
+        localStorage.setItem("cart", JSON.stringify(cart));
+  
+        // Update cart item count
+        const updatedCartCount = cart.items.reduce((count, item) => count + item.quantity, 0);
+        localStorage.setItem("cartItemCount", updatedCartCount);
+        setCartItemCount(updatedCartCount); // Update cart count in context
+  
+        setMessage("Item added to cart!");
+        setIsInfoModalOpen(true); // Correctly open the info modal
       }
-
-      const data = await response.json();
-      setMessage("Item added to cart!");
-      setCartItemCount(cartItemCount + quantity); // Update cart count in context
-      setIsInfoModalOpen(true); // Correctly open the info modal
     } catch (error) {
       alert("Error adding item to cart:", error);
     }
@@ -261,13 +329,13 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
       {/* Informational Modal */}
       {isInfoModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-10">
-          <div className="bg-white p-6 rounded-lg w-80 text-center">
-            <p>{message}</p>
+          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+            <h2 className="text-2xl font-bold mb-4">{message}</h2>
             <button
-              className="mt-4 bg-green-500 text-white py-2 px-4 rounded-lg"
+              className="bg-green-500 text-white py-2 px-4 rounded-lg"
               onClick={() => setIsInfoModalOpen(false)}
             >
-              Close
+              OK
             </button>
           </div>
         </div>
@@ -276,17 +344,17 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
       {/* Image Modal */}
       {isImageModalOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-10"
+          className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50"
           onClick={handleOutsideClick}
         >
-          <div className="bg-white p-6 rounded-lg w-96 text-center">
+          <div className="relative">
             <img
               src={currentImages[currentImageIndex]}
               alt={product.name}
-              className="w-full h-full object-contain"
+              className="w-full h-auto object-contain"
             />
             <button
-              className="mt-4 bg-red-500 text-white py-2 px-4 rounded-lg"
+              className="absolute top-4 right-4 text-white bg-black bg-opacity-50 p-2 rounded-full"
               onClick={closeImageModal}
             >
               Close

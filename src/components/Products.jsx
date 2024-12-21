@@ -8,7 +8,7 @@ const Products = ({ setLoading }) => {
   const navigate = useNavigate();
 
   const handleClick = (item) => {
-    navigate(`/product/${item._id}`);
+    navigate(`/product/${item._id}/0`);
   };
 
   useEffect(() => {
