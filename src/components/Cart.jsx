@@ -56,9 +56,14 @@ const CartPage = () => {
 
   useEffect(() => {
     const total = cartItems.reduce(
-      (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
+      (sum, item) => {
+        return item.productId.offers[item.selectedSizeIndex]
+          ? sum + item.productId.offers[item.selectedSizeIndex] * item.quantity
+          : sum + item.productId.prices[item.selectedSizeIndex] * item.quantity;
+      },
       0
     );
+    
     setTotalPrice(total);
     if(!user)
     {
@@ -73,10 +78,12 @@ const CartPage = () => {
     const updatedCartItems = [...cartItems];
       updatedCartItems[index].quantity = newQuantity;
 
-    const newTotalPrice = updatedCartItems.reduce(
-      (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
-      0
-    );
+      const newTotalPrice = updatedCartItems.reduce((sum, item) => {
+        return item.productId.offers[item.selectedSizeIndex]
+          ? sum + item.productId.offers[item.selectedSizeIndex] * item.quantity
+          : sum + item.productId.prices[item.selectedSizeIndex] * item.quantity;
+      }, 0);
+      
     setTotalPrice(newTotalPrice);
 
     
@@ -117,10 +124,11 @@ const CartPage = () => {
     const updatedCartItems = cartItems.filter((_, i) => i !== itemToDelete);
     setCartItems(updatedCartItems);
 
-    const newTotalPrice = updatedCartItems.reduce(
-      (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
-      0
-    );
+    const newTotalPrice = updatedCartItems.reduce((sum, item) => {
+      return item.productId.offers[item.selectedSizeIndex]
+        ? sum + item.productId.offers[item.selectedSizeIndex] * item.quantity
+        : sum + item.productId.prices[item.selectedSizeIndex] * item.quantity;
+    }, 0);
     setTotalPrice(newTotalPrice);
 
     const cart = getLocalStorageCart();
@@ -153,6 +161,10 @@ const CartPage = () => {
 
   const handleProceedToPayment = () => {
     navigate("/order");
+  };
+
+  const handleOrderPage = () =>{
+    navigate("/orders");
   };
 
   const handleBack = () => {
@@ -270,12 +282,18 @@ const CartPage = () => {
                 </div>
 
                 {/* Price with currency */}
-                <div className="flex flex-col justify-between">
-                  <p className="text-xl font-semibold text-gray-800">
-                    ₹
-                    {item.productId.prices[item.selectedSizeIndex] *
-                      item.quantity}
-                  </p>
+                <div className="flex flex-col justify-between text-xl">
+                {item.productId.offers[item.selectedSizeIndex] ? (
+              <div className="flex items-center space-x-4">
+                
+                <span className="text-green-600 font-semibold">
+                  Offer: ₹ {item.productId.offers[item.selectedSizeIndex]}
+                </span>
+              </div>
+            ) : (
+              <span>Price: ₹{item.productId.prices[item.productId.selectedSizeIndex]}</span>
+            )}
+                  
                 </div>
 
                 {/* Delete Button */}
@@ -314,6 +332,15 @@ const CartPage = () => {
       )}
 
       {/* Proceed to Payment Button */}
+      <div className="md:flex md:justify-end gap-10">
+      <div className="mt-8 text-center">
+          <button
+            className="bg-green-600 text-white py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition duration-300 ease-in-out"
+            onClick={handleOrderPage}
+          >
+            View Previous orders
+          </button>
+        </div>
       {cartItems.length > 0 && (
         <div className="mt-8 text-center">
           <button
@@ -324,6 +351,9 @@ const CartPage = () => {
           </button>
         </div>
       )}
+
+      
+      </div>
 
       {/* Modal for deletion confirmation */}
       <Modal

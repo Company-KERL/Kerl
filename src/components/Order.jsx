@@ -20,6 +20,8 @@ const Order = () => {
   // Fetch cart items
   useEffect(() => {
     const fetchItems = async () => {
+      if(user)
+      {
       try {
         const response = await fetch(
           `${process.env.REACT_APP_BACKEND_URI}/cart/${user._id}`
@@ -32,10 +34,21 @@ const Order = () => {
       } catch (error) {
         console.error(error.message);
       }
+    }
+    else
+    {
+      const cart = getLocalStorageCart();
+      setItems(cart.items);
+    }
     };
 
     fetchItems();
   }, [user]);
+
+  const getLocalStorageCart = () => {
+    const cart = JSON.parse(localStorage.getItem("cart")) || { items: [], totalPrice: 0 };
+    return cart;
+  };
 
   // Fetch saved addresses
   useEffect(() => {
@@ -238,7 +251,7 @@ const Order = () => {
                 <span className="text-gray-700">{item.productId.name}</span>
                 <span className="text-gray-700">x{item.quantity}</span>
                 <span className="text-gray-900 font-semibold">
-                  ${item.price}
+                  ${item.productId.offers[item.selectedSizeIndex]}
                 </span>
               </li>
             ))

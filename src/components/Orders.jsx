@@ -45,6 +45,8 @@ const OrderPage = () => {
   useEffect(() => {
     // Fetch orders from the server
     const fetchOrders = async () => {
+      if(user)
+      {
       setLoading(true);
       try {
         const response = await fetch(
@@ -61,9 +63,16 @@ const OrderPage = () => {
       } finally {
         setLoading(false);
       }
+    }
+    else
+    {
+      setOrders(0);
+    }
     };
     fetchOrders();
-  }, [setLoading, user._id]);
+  }, [setLoading]);
+
+  
 
   const handleOrderClick = (order) => {
     setSelectedOrder(order);
