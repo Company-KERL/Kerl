@@ -249,9 +249,10 @@ const Order = () => {
                 className="flex justify-between py-2 border-b border-gray-200"
               >
                 <span className="text-gray-700">{item.productId.name}</span>
+                <span className="">{item.productId.sizes[item.selectedSizeIndex]}</span>
                 <span className="text-gray-700">x{item.quantity}</span>
                 <span className="text-gray-900 font-semibold">
-                  ${item.productId.offers[item.selectedSizeIndex]}
+                  ${item.productId.offers[item.selectedSizeIndex]*item.quantity}
                 </span>
               </li>
             ))
