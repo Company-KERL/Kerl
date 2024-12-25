@@ -21,7 +21,12 @@ const CartPage = () => {
   };
 
   const setLocalStorageCart = (newCart) => {
+    const totalQuantity = newCart.items.reduce((sum, item) => sum + item.quantity, 0);
     localStorage.setItem("cart", JSON.stringify(newCart));
+    localStorage.setItem("cartItemCount", totalQuantity.toString());
+    setCartItemCount(totalQuantity)
+    console.log(JSON.stringify(newCart.items.length));
+    
   };
 
   useEffect(() => {
@@ -43,9 +48,11 @@ const CartPage = () => {
         setTotalPrice(cart.totalPrice);
       }
       setLoading(false);
+      
     };
     fetchCart();
   }, [user]);
+
 
   useEffect(() => {
     const total = cartItems.reduce(
@@ -53,15 +60,18 @@ const CartPage = () => {
       0
     );
     setTotalPrice(total);
-    const cart = getLocalStorageCart();
+    if(!user)
+    {
+      const cart = getLocalStorageCart();
     cart.totalPrice = total;
     setLocalStorageCart(cart);
+    }
+    
   }, [cartItems]);
 
-  const handleQuantityChange = async (index, newQuantity) => {
+  const handleQuantityChange = async (index, newQuantity, oldQuantity) => {
     const updatedCartItems = [...cartItems];
-    updatedCartItems[index].quantity = newQuantity;
-    setCartItems(updatedCartItems);
+      updatedCartItems[index].quantity = newQuantity;
 
     const newTotalPrice = updatedCartItems.reduce(
       (sum, item) => sum + item.productId.prices[item.selectedSizeIndex] * item.quantity,
@@ -69,9 +79,9 @@ const CartPage = () => {
     );
     setTotalPrice(newTotalPrice);
 
-    const cart = getLocalStorageCart();
-    cart.totalPrice = newTotalPrice;
-    setLocalStorageCart(cart);
+    
+    
+    
 
     if (user && user._id) {
       try {
@@ -85,11 +95,16 @@ const CartPage = () => {
             selectedSizeIndex: updatedCartItems[index].selectedSizeIndex,
           }),
         });
+        setCartItemCount((cartItemCount)=>cartItemCount+newQuantity-oldQuantity)
       } catch (error) {
         console.error(error.message);
       }
     } else {
       setLocalStorageCart({ ...getLocalStorageCart(), items: updatedCartItems });
+      const cart = getLocalStorageCart();
+      cart.totalPrice = newTotalPrice;
+      setCartItems(updatedCartItems);
+      setLocalStorageCart(cart);
     }
   };
 
@@ -112,6 +127,7 @@ const CartPage = () => {
     cart.items = updatedCartItems;
     cart.totalPrice = newTotalPrice;
     setLocalStorageCart(cart);
+
 
     if (user && user._id) {
       try {
@@ -233,7 +249,7 @@ const CartPage = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() =>
-                      handleQuantityChange(index, item.quantity - 1)
+                      handleQuantityChange(index, item.quantity - 1, item.quantity)
                     }
                     className="w-8 h-8 flex justify-center items-center text-lg text-gray-700 bg-gray-200 rounded-full hover:bg-gray-300"
                     disabled={item.quantity <= 1}
@@ -245,7 +261,7 @@ const CartPage = () => {
                   </p>
                   <button
                     onClick={() =>
-                      handleQuantityChange(index, item.quantity + 1)
+                      handleQuantityChange(index, item.quantity + 1, item.quantity)
                     }
                     className="w-8 h-8 flex justify-center items-center text-lg text-gray-700 bg-gray-200 rounded-full hover:bg-gray-300"
                   >

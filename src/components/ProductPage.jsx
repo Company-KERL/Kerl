@@ -19,7 +19,7 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
       // If logged in, use the user's cart data
       const storedCartCount = localStorage.getItem("cartItemCount");
       if (storedCartCount) {
-        setCartItemCount(parseInt(storedCartCount, 10));
+        
       }
     }
   }, [user, setCartItemCount]);
@@ -66,6 +66,9 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
+        let updatedCartCount = cart.items.reduce((count, item) => count + item.quantity, 0);
+        localStorage.setItem("cartItemCount", updatedCartCount); // Ensure count is 0 if the cart is empty
+        setCartItemCount(updatedCartCount);
   
         // Create the cart item object
         const cartItem = {
@@ -84,17 +87,22 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
         };
   
         // Check if the product already exists in the cart
+        
         const existingItemIndex = cart.items.findIndex(
-          (item) => item.productId._id === product._id && item.selectedSizeIndex === selectedSizeIndex
+          (item) =>
+            item.productId._id === product._id && item.selectedSizeIndex === selectedSizeIndex
         );
-  
+        
         if (existingItemIndex !== -1) {
-          // Update the quantity if the product exists
           cart.items[existingItemIndex].quantity += quantity;
         } else {
-          // Add the new item to the cart if it doesn't exist
           cart.items.push(cartItem);
         }
+        
+        updatedCartCount = cart.items.reduce((count, item) => count + item.quantity, 0);
+        localStorage.setItem("cartItemCount", updatedCartCount);
+        setCartItemCount(updatedCartCount);
+        
   
         // Calculate the total price of the cart
         cart.totalPrice = cart.items.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -106,7 +114,7 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
         localStorage.setItem("cart", JSON.stringify(cart));
   
         // Update cart item count
-        const updatedCartCount = cart.items.reduce((count, item) => count + item.quantity, 0);
+        updatedCartCount = cart.items.reduce((count, item) => count + item.quantity, 0);
         localStorage.setItem("cartItemCount", updatedCartCount);
         setCartItemCount(updatedCartCount); // Update cart count in context
   
@@ -115,6 +123,7 @@ const ProductPage = ({ product, onBackClick, onAddToCart, index }) => {
       }
     } catch (error) {
       alert("Error adding item to cart:", error);
+      console.log(error);
     }
   };
 
