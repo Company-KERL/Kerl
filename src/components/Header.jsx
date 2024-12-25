@@ -40,7 +40,18 @@ const Header = () => {
         </a>
 
         {/* Hamburger Menu for Mobile */}
-        <div className="md:hidden">
+        <div className="md:hidden flex">
+        <a
+                href="/cart"
+                className="flex items-center text-gray-800 hover:text-gray-900 relative"
+              >
+                <FaShoppingCart className="mr-7" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 right-3 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {cartItemCount}
+                  </span>
+                )}
+              </a>
           <button onClick={toggleMenu} aria-label="Toggle Menu">
             {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
           </button>
@@ -213,22 +224,16 @@ const Header = () => {
 
           {/* Add Login and Signup buttons for desktop */}
           {!isLoggedIn && (
-            <div className="hidden md:flex space-x-2 ml-4">
-              <a
-                href="/signup"
-                className="block py-2 px-6  bg-green-500 text-white font-semibold rounded-full 
-            hover:bg-green-600 transition duration-300 ease-in-out transform hover:-translate-y-1 
-            shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-              >
-                Sign Up
-              </a>
+            <div className="hidden md:flex space-x-4 ml-4">
+              
+              
               <a
                 href="/login"
                 className="block py-2 px-6 border-2 border-green-500 text-green-800 
             font-semibold rounded-full hover:bg-green-50 transition duration-300 
             ease-in-out transform hover:-translate-y-1 shadow-md"
               >
-                Login
+                Login/Sign Up
               </a>
               <a
                 href="/cart"
@@ -241,6 +246,7 @@ const Header = () => {
                   </span>
                 )}
               </a>
+              
             </div>
 
           )}
